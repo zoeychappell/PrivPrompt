@@ -1,4 +1,3 @@
-import sys
 '''
 PrivPrompt
 
@@ -7,7 +6,9 @@ Zoey Chappell, Adam Braccia, Minn Myint
 CSEC-490, Rochester Institute of Technology
 '''
 
-    
+import sys
+
+
 '''
 Function that takes in the user input, then cleans the input. 
 Parameters: 
