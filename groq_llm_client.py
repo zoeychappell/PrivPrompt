@@ -9,17 +9,17 @@ import os
 from groq import Groq
 from dotenv import load_dotenv
 
-load_dotenv()
-
-API_KEY = os.getenv('api_token')
 '''Reaches out to groq and can get a response'''
-def groq(): 
+def groq(user_input): 
+    load_dotenv()
+
+    API_KEY = os.getenv('api_token')
     client = Groq(api_key = API_KEY)
     chat_completion = client.chat.completions.create(
         messages=[
             {
             "role": "user",
-            "content": "Explain the importance of fast language models",
+            "content": user_input,
             }
         ],
     model="llama-3.3-70b-versatile",
@@ -28,7 +28,7 @@ def groq():
 
 
 def main():
-    groq()
+    groq("give me 5 random words")
 
 
 if __name__ == '__main__':
