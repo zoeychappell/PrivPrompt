@@ -5,8 +5,13 @@ Zoey Chappell, Adam Braccia, Minn Myint
 py
 CSEC-490, Rochester Institute of Technology
 '''
-API_KEY = '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'
+import os
 from groq import Groq
+from dotenv import load_dotenv
+
+load_dotenv()
+
+API_KEY = os.getenv('api_token')
 '''Reaches out to groq and can get a response'''
 def groq(): 
     client = Groq(api_key = API_KEY)
