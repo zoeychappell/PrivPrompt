@@ -1,19 +1,23 @@
+'''
+PrivPrompt
+
+Zoey Chappell, Adam Braccia, Minn Myint
+
+CSEC-490, Rochester Institute of Technology
+'''
 # Import the required files
-import llm_client
-import cli_utility
-import sanitize
-
+from user_input import clean_input
+from sanitize import sanitize_input
+from groq_llm_client import groq
 def main():
-    print('test')
-    # call cli_utility 
-    
-    # This will grab the user prompt
-
+    # call clean_input 
+    user_input = clean_input()
     # then feed it into sanitize and store 
     # TRACK what is changed 
-
+    user_input_cleaned = sanitize_input(user_input)
+    print(user_input_cleaned)
     # send sanitized content to llm_client and store
-    
+    groq(user_input_cleaned)
     # grab the llm response
 
     # fill in any details if needed
