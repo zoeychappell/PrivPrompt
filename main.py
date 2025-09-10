@@ -7,11 +7,14 @@ CSEC-490, Rochester Institute of Technology
 '''
 # Import the required files
 from user_input import clean_input
+from cli_utility import CLI
 from sanitize import sanitize_input
 from groq_llm_client import groq
 def main():
     # call clean_input 
-    user_input = clean_input()
+    cli_instance = CLI()  # Create instance
+    user_input = cli_instance.cli() 
+    #user_input = clean_input()
     # then feed it into sanitize and store 
     # TRACK what is changed 
     user_input_cleaned = sanitize_input(user_input)
