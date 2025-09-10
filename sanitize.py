@@ -7,7 +7,7 @@ CSEC-490, Rochester Institute of Technology
 '''
 import re
 
-def sanitize(user_input): 
+def sanitize_input(user_input): 
     EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")
     SSN_PATTERN_1 = re.compile (r"\d{3}-\d{2}-\d{4}") # ex. 111-12-1234
     SSN_PATTERN_2 = re.compile(r"\d{3} \d{2} \d{4}") # ex. 111 12 1234
@@ -37,11 +37,13 @@ def sanitize(user_input):
             user_input = user_input.replace(_, dict_ssn[_])
             s_counter = s_counter + 1
     # here for testing       
-    print (user_input)
-    
+
+    '''Name Match'''
+
+    return user_input    
 
 def main(): 
-    sanitize("This is a test zoey.chappell@rit.edu, anothertest@yahoo.com, 123 14 1235 and an ssn 123-12-1234")
+    sanitize_input("This is a test zoey.chappell@rit.edu, anothertest@yahoo.com, 123 14 1235 and an ssn 123-12-1234")
 
 if __name__ == '__main__':
     main()
