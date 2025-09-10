@@ -8,3 +8,9 @@ We are guided by Faculty advisor Yidan Hu.
 # Team Members
 Zoey Chappell, Adam Braccia, and Minn Myint
 
+# How to get a Groq API key
+
+1. Create an groq account and login. 
+2. Go to https://console.groq.com/keys and select "Create API Key" in the upper right. 
+3. Follow the steps and copy the API key. 
+
