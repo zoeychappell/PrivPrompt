@@ -17,7 +17,7 @@ Returns:
     - cleaned_user_input : A nicely formatted string'''
 def clean_input():
     # User input gathered.
-    print("Enter your text (Ctrl+Z Enter to finish):")
+    # print("Enter your text (Ctrl+Z Enter to finish):")
     # By using sys.stdin.read(), the program can accept multiple lines of input
     user_text = sys.stdin.read() # Note, can introduce character limits here with read(#)
     # Checks for new lines and replaces them with a space.
@@ -30,7 +30,6 @@ def clean_input():
 
 def main(): 
     user_input = clean_input()
-    print(user_input)
 
 if __name__ == '__main__':
     main()
