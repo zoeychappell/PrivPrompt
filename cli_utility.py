@@ -1,4 +1,5 @@
 
+from user_input import clean_input
 LIST_OF_LLMS = ["groq"]
 
 class CLI: 
@@ -22,30 +23,28 @@ class CLI:
         for id, llm in enumerate(LIST_OF_LLMS, start = 1):
             print(f"{id}. {llm}")
         
-        while self.chosen_llm is None: 
             llm_choice = input("\n\033[34mWhich LLM would you like to use? (number or name): \033[0m").strip()
              
             if llm_choice.lower() in ["help", "h", "?"]:
                 self.show_help()
                 continue
             
-            elif (llm_choice.lower() in LIST_OF_LLMS) or (llm_choice in len(LIST_OF_LLMS)):
+            elif (llm_choice.lower() in LIST_OF_LLMS):
                 self.chosen_llm = llm_choice
             else: 
                 print("\033[31mInvalid choice. Please select another LLM. \033[0m")
-        while True: 
-            command = input("> ").strip()
+        command = clean_input()
 
-            if command.lower() in ["done", "exit"]:
-                print("\033[34mThanks! Goodbye. \033[0m")
-                break
-            elif command.lower() in ["help", "h", "?"]:
-                self.show_help()
+        if command.lower() in ["done", "exit"]:
+            print("\033[34mThanks! Goodbye. \033[0m")
+            # need to close gracefully here
+        elif command.lower() in ["help", "h", "?"]:
+            self.show_help()
             
-            else: 
-                print(f"\033[35m[{self.chosen_llm}]\033[0m \033[34mYou entered \033[0m {command}")
+        else: 
+            print(f"\033[35m[{self.chosen_llm}]\033[0m \033[34mYou entered \033[0m {command}")
 
-
+        return command
     
 def main():
     cli_instance = CLI()
