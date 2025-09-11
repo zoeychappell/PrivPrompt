@@ -17,7 +17,7 @@ def main():
     #user_input = clean_input()
     # then feed it into sanitize and store 
     # TRACK what is changed 
-    user_input_cleaned = sanitize_input(user_input)
+    user_input_cleaned, dict_email, dict_ssn = sanitize_input(user_input)
     print(user_input_cleaned)
     # send sanitized content to llm_client and store
     groq(user_input_cleaned)
