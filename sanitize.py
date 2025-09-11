@@ -40,10 +40,21 @@ def sanitize_input(user_input):
 
     '''Name Match'''
 
-    return user_input    
+    return user_input, dict_email, dict_ssn
+
+def fill_data(dict_email, dict_ssn, llm_output):
+    if dict_email: 
+        for _ in dict_email:
+            llm_output = llm_output.replace(dict_email[_], _)
+    if dict_ssn: 
+        for _ in dict_ssn: 
+            llm_output = llm_output.replace(dict_ssn[_], _)
+    return llm_output
 
 def main(): 
-    sanitize_input("This is a test zoey.chappell@rit.edu, anothertest@yahoo.com, 123 14 1235 and an ssn 123-12-1234")
-
+    user_input, dict_email, dict_ssn = sanitize_input("This is a test zoey.chappell@rit.edu, 123 14 1235 and an ssn 123-12-1234")
+    llm_output = "Hello person, i see your email is user1@email.com, your ssn is XXX-XX-1001"
+    llm_output = fill_data(dict_email, dict_ssn, llm_output)
+    print(llm_output)
 if __name__ == '__main__':
     main()
