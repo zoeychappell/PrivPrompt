@@ -1,6 +1,7 @@
 
 from user_input import clean_input
-LIST_OF_LLMS = ["groq"]
+LIST_OF_LLMS = ["Llama"]
+
 
 class CLI: 
     def __init__(self):
@@ -20,16 +21,18 @@ class CLI:
         print("\033[34mWelcome to PrivPompt!\033[0m \n")
 
         print("\033[34mAvailable LLMs: \033[0m")
+        llm_lookup = {llm.lower(): llm for llm in LIST_OF_LLMS}
+
         for id, llm in enumerate(LIST_OF_LLMS, start = 1):
             print(f"{id}. {llm}")
         
-            llm_choice = input("\n\033[34mWhich LLM would you like to use? (number or name): \033[0m").strip()
+            llm_choice = input("\n\033[34mWhich LLM would you like to use? (number or name): \033[0m").lower().strip()
              
             if llm_choice.lower() in ["help", "h", "?"]:
                 self.show_help()
                 continue
             
-            elif (llm_choice.lower() in LIST_OF_LLMS):
+            elif (llm_choice in llm_lookup):
                 self.chosen_llm = llm_choice
             else: 
                 print("\033[31mInvalid choice. Please select another LLM. \033[0m")
