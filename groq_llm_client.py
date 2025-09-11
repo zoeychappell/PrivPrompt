@@ -24,7 +24,8 @@ def groq(user_input):
         ],
     model="llama-3.3-70b-versatile",
     )
-    print(chat_completion.choices[0].message.content)
+    llm_output = chat_completion.choice[0].message.content
+    print(llm_output)
 
 
 def main():
