@@ -1,0 +1,10 @@
+To use flask and run front end:
+    1. Open Terminal
+    2. Go to the location of the /my-flask-app
+        cd /Users/adambraccia/Documents/GitHub/PrivPrompt/my-flask-app
+    3. Open virtual environment
+        source venv/bin/activate
+    4. Run the flask app.py
+        python app.py
+    5. Open in the browser the IP
+        http://127.0.0.1:5000
