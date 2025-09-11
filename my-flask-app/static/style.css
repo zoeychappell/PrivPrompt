@@ -41,7 +41,7 @@ body {
 #promptInput {
   flex: 1;             /* Input takes up remaining space */
   padding: 10px;       /* Inner spacing inside input */
-  border: 1px solid #ddd; /* Light gray border */
+  border: 1px solid #0d0d0d; /* Light gray border */
   border-radius: 8px;  /* Rounded corners */
   font-size: 1rem;     /* Set readable font size */
 }
