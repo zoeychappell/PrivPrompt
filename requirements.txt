@@ -3,3 +3,4 @@ os
 re
 openai
 groqgit
+cohere
