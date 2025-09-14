@@ -9,19 +9,19 @@ import os
 from cohere import ClientV2
 from dotenv import load_dotenv
 
-def cohere():
+def cohere(user_input):
     load_dotenv()
 
     CO_API_KEY = os.getenv('cohere_api_key')
     co = ClientV2(CO_API_KEY)
     response = co.chat(
         model="command-a-03-2025", 
-        messages=[{"role": "user", "content": "hello world!"}]
+        messages=[{"role": "user", "content": user_input}]
         )
     print(response)
 
 def main():
-    cohere()
+    cohere("test")
 
 if __name__ == '__main__':
     main()
