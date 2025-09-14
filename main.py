@@ -9,7 +9,7 @@ CSEC-490, Rochester Institute of Technology
 from user_input import clean_input
 from cli_utility import CLI
 from sanitize import sanitize_input
-from groq_llm_client import groq
+from llm_clients.groq_llm_client import groq
 def main():
     # call clean_input 
     cli_instance = CLI()  # Create instance
