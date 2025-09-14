@@ -1,0 +1,27 @@
+'''
+PrivPrompt
+
+Zoey Chappell, Adam Braccia, Minn Myint
+py
+CSEC-490, Rochester Institute of Technology
+'''
+import os
+from cohere import ClientV2
+from dotenv import load_dotenv
+
+def cohere():
+    load_dotenv()
+
+    CO_API_KEY = os.getenv('cohere_api_key')
+    co = ClientV2(CO_API_KEY)
+    response = co.chat(
+        model="command-a-03-2025", 
+        messages=[{"role": "user", "content": "hello world!"}]
+        )
+    print(response)
+
+def main():
+    cohere()
+
+if __name__ == '__main__':
+    main()
