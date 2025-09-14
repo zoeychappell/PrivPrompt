@@ -52,6 +52,7 @@ def sanitize_input(user_input):
     '''Name Match'''
 
     return user_input, dict_email, dict_ssn
+
 '''
 This function replaces the LLM output with the  real data (ex. PII)
 Parameters: 
