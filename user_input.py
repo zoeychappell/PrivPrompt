@@ -19,6 +19,7 @@ def clean_input():
     # User input gathered.
     # print("Enter your text (Ctrl+Z Enter to finish):")
     # By using sys.stdin.read(), the program can accept multiple lines of input
+    print("Please type your message. Use CTRL-Z enter to exit and send the message. ")
     user_text = sys.stdin.read() # Note, can introduce character limits here with read(#)
     # Checks for new lines and replaces them with a space.
     cleaned_user_input = user_text.replace("\n", "").replace("\r", "")
