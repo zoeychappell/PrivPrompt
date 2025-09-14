@@ -14,6 +14,7 @@ By using dotenv, API keys can be set as an environment variable and not included
 2. Create a .env file in your environment. 
 3. Add an entry in the following format: 
     api_key = "your_api_key"
+
 # How to get a Groq API key
 
 1. Create an groq account and login. 
