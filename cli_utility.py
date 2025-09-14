@@ -1,6 +1,9 @@
 
 from user_input import clean_input
-LIST_OF_LLMS = ["Llama"]
+from llm_clients.groq_llm_client import groq
+from llm_clients.cohere_llm_client import cohere
+
+LIST_OF_LLMS = ["Llama", "Cohere"]
 
 
 class CLI: 
@@ -26,16 +29,18 @@ class CLI:
         for id, llm in enumerate(LIST_OF_LLMS, start = 1):
             print(f"{id}. {llm}")
         
+        while not self.chosen_llm:
             llm_choice = input("\n\033[34mWhich LLM would you like to use? (number or name): \033[0m").lower().strip()
              
             if llm_choice.lower() in ["help", "h", "?"]:
                 self.show_help()
                 continue
             
-            elif (llm_choice in llm_lookup):
+            if (llm_choice in llm_lookup):
                 self.chosen_llm = llm_choice
             else: 
                 print("\033[31mInvalid choice. Please select another LLM. \033[0m")
+        
         command = clean_input()
 
         if command.lower() in ["done", "exit"]:
@@ -43,11 +48,16 @@ class CLI:
             # need to close gracefully here
         elif command.lower() in ["help", "h", "?"]:
             self.show_help()
-            
+        if self.chosen_llm.lower() == "llama":
+            response = groq(command)   
+        elif self.chosen_llm.lower() == "cohere":
+            response = cohere(command)
         else: 
-            print(f"\033[35m[{self.chosen_llm}]\033[0m \033[34mYou entered \033[0m {command}")
+            response = f"Unknown LLM: {self.chosen_llm
+                                       }"
+        print(f"\033[35m[{self.chosen_llm}]\033[0m \033[34mYou entered \033[0m {command}")
 
-        return command
+        return command, response
     
 def main():
     cli_instance = CLI()
