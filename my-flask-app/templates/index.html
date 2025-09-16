@@ -12,37 +12,31 @@
   <body>
     <div class="container">
       <h1>Prompt App</h1>
-      <div class="input-section">
+
+      <div class="input-box">
         <input
           type="text"
           id="promptInput"
-          placeholder="Enter your prompt here"
+          placeholder="Enter your prompt here..."
         />
         <button id="submitBtn">Submit</button>
       </div>
 
-      <div class="results-section">
+      <div class="box">
         <h2>Original Prompt</h2>
-        <div id="originalPrompt" class="prompt-box">
-          Original prompt will appear here.
-        </div>
+        <pre id="originalPrompt"></pre>
       </div>
 
-      <div class="results-section">
+      <div class="box">
         <h2>Sanitized Prompt</h2>
-        <div id="sanitizedPrompt" class="prompt-box">
-          Sanitized prompt will appear here.
-        </div>
+        <pre id="sanitizedPrompt"></pre>
       </div>
 
-      <div class="detected-section">
+      <div class="box">
         <h2>Detected Sensitive Info</h2>
-        <div id="detected" class="prompt-box">
-          Detected sensitive info will appear here.
-        </div>
+        <pre id="detected"></pre>
       </div>
     </div>
-
     <script src="{{ url_for('static', filename='script.js') }}"></script>
   </body>
 </html>
