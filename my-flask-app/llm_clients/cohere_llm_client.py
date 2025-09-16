@@ -18,7 +18,8 @@ def cohere(user_input):
         model="command-a-03-2025", 
         messages=[{"role": "user", "content": user_input}]
         )
-    print(response)
+    llm_output = response.message.content[0].text
+    return llm_output
 
 def main():
     cohere("test")
