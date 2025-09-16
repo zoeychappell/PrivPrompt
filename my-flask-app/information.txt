@@ -10,3 +10,7 @@ To use flask and run front end:
         python app.py
     5. Open in the browser the IP
         http://127.0.0.1:5000
+
+
+Might have to download  livereload
+pip install livereload 

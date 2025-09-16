@@ -4,7 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Prompt App</title>
-    <link rel="stylesheet" href="style.css" />
+    <!-- ✅ Load CSS from Flask static folder -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
   </head>
   <body>
     <div class="container">
@@ -23,6 +27,7 @@
       </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- ✅ Load JS from Flask static folder -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
   </body>
 </html>

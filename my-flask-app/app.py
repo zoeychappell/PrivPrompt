@@ -1,25 +1,28 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
+from livereload import Server  # 👈 import LiveReload
 
-app = Flask(__name__, static_folder='static', static_url_path='/static')
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # disables caching for static files
+app = Flask(__name__, static_folder="static", static_url_path="/static")
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # no caching
+CORS(app)
 
-app = Flask(__name__) # Create a Flask application instance
-CORS(app) # Enable CORS for the app so frontend JS can make API calls
-
-# Serve index.html at the root ("/") route
 @app.route("/")
 def home():
-    return render_template("index.html") # Render the template "index.html"
+    return render_template("index.html")
 
-# API endpoint that handles POST requests to /api/prompt
 @app.route("/api/prompt", methods=["POST"])
 def handle_prompt():
-    data = request.get_json() # Parse incoming JSON data from the request
-    prompt = data.get("prompt", "") # Get the "prompt" field or default to empty
+    data = request.get_json()
+    prompt = data.get("prompt", "")
     if not prompt:
         return jsonify({"error": "No prompt provided"}), 400
     return jsonify({"result": f"You entered: {prompt}"})
 
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001, debug=True) # Start server on port 5001 with debug enabled
+    server = Server(app.wsgi_app)
+    # Watch files in templates/ and static/ for changes
+    server.watch('templates/*')
+    server.watch('static/*')
+    # Start server on port 5001
+    server.serve(port=5001, debug=True)
