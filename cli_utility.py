@@ -48,6 +48,7 @@ class CLI:
             # need to close gracefully here
         elif command.lower() in ["help", "h", "?"]:
             self.show_help()
+        # if user chose llama - sends the information to llama
         if self.chosen_llm.lower() == "llama":
             response = groq(command)   
         elif self.chosen_llm.lower() == "cohere":
