@@ -11,8 +11,8 @@ body, h1, h2, p {
    Layout and page styling
    ========================= */
 body {
-  background: #0b0b0b;         /* Dark background color for the page */
-  color: #000000;              /* Default text color */
+  background: #fbf9f9;         /* Dark background color for the page */
+  color: #0b0b0b;              /* Default text color */
   display: flex;               /* Use flexbox for layout */
   justify-content: center;     /* Center container horizontally */
   align-items: flex-start;     /* Align container at the top vertically */
@@ -41,7 +41,7 @@ body {
 #promptInput {
   flex: 1;             /* Input takes up remaining space */
   padding: 10px;       /* Inner spacing inside input */
-  border: 1px solid #0d0d0d; /* Light gray border */
+  border: 1px solid #646363; /* Light gray border */
   border-radius: 8px;  /* Rounded corners */
   font-size: 1rem;     /* Set readable font size */
 }
