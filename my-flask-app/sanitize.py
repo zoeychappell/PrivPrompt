@@ -1,9 +1,11 @@
 import re
 
 def sanitize_input(user_input): 
-    EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")
-    SSN_PATTERN_1 = re.compile(r"\d{3}-\d{2}-\d{4}")
-    SSN_PATTERN_2 = re.compile(r"\d{3} \d{2} \d{4}")
+    EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}") # Matches email addresses 
+    SSN_PATTERN_1 = re.compile(r"\d{3}-\d{2}-\d{4}") # Matches format ###-##-####
+    SSN_PATTERN_2 = re.compile(r"\d{3} \d{2} \d{4}") # Matches format ### ## ####
+    SSN_PATTERN_3 = re.compile(r"\d{3} \d{2}-\d{4}") # Matches format ### ##-####
+    SSN_PATTERN_4 = re.compile(r"\d{3}-\d{2} \d{4}") # Matches format ###-## ####
     dict_email = {}
     dict_ssn = {}
 
@@ -16,7 +18,7 @@ def sanitize_input(user_input):
         counter += 1
 
     # SSNs
-    ssn_matches = SSN_PATTERN_1.findall(user_input) + SSN_PATTERN_2.findall(user_input)
+    ssn_matches = SSN_PATTERN_1.findall(user_input) + SSN_PATTERN_2.findall(user_input) + SSN_PATTERN_3.findall(user_input) + SSN_PATTERN_4.findall(user_input)
     s_counter = 1
     for s in ssn_matches:
         dict_ssn[s] = f"XXX-XX-{1000+s_counter:04d}"
