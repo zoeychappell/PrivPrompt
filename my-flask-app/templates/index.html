@@ -1,33 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Prompt App</title>
-    <!-- ✅ Load CSS from Flask static folder -->
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='style.css') }}"
-    />
-  </head>
-  <body>
-    <div class="container">
-      <h1>Prompt App</h1>
-      <div class="input-section">
-        <input
-          type="text"
-          id="promptInput"
-          placeholder="Enter your prompt here"
-        />
-        <button id="submitBtn">Submit</button>
-      </div>
-      <div class="results-section">
-        <h2>Results</h2>
-        <div id="results"></div>
-      </div>
-    </div>
+<div class="results-section">
+  <h2>Sanitized Result</h2>
+  <div id="results"></div>
+</div>
 
-    <!-- ✅ Load JS from Flask static folder -->
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-  </body>
-</html>
+<div class="detected-section">
+  <h2>Detected Sensitive Info</h2>
+  <div id="detected"></div>
+</div>

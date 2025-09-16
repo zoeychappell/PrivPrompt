@@ -1,47 +1,49 @@
-document.addEventListener("DOMContentLoaded", () => {
-  // Grab references to HTML elements by their IDs
-  const input = document.getElementById("promptInput");   // Text input field
-  const button = document.getElementById("submitBtn");    // Submit button
-  const results = document.getElementById("results");     // Results display area
+const input = document.getElementById("promptInput");
+const button = document.getElementById("submitBtn");
+const results = document.getElementById("results");
+const detected = document.getElementById("detected");
 
-  // Dynamically build API URL based on current host (localhost:5000, 5001, etc.)
-  // Ensures it works whether served on localhost, 127.0.0.1, or another host
-  const apiBase = `${window.location.protocol}//${window.location.hostname}:5001`;
-
-  // Add a click event listener to the submit button
-  button.addEventListener("click", async () => {
-    const prompt = input.value.trim(); // Get the input value and remove whitespace
-
-    // If no input is provided, show an error message and stop
+button.addEventListener("click", async () => {
+    const prompt = input.value.trim();
     if (!prompt) {
-      results.textContent = "Please enter a prompt."; 
-      return;
+        results.textContent = "Please enter a prompt.";
+        detected.textContent = "";
+        return;
     }
 
-    // Show loading text while waiting for a server response
     results.textContent = "Loading...";
+    detected.textContent = "";
 
     try {
-      // Send the prompt to the backend API using a POST request
-      const response = await fetch(`${apiBase}/api/prompt`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" }, // Tell server we're sending JSON
-        body: JSON.stringify({ prompt }), // Send the prompt as JSON in the request body
-      });
+        const response = await fetch("/api/prompt", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt }),
+        });
 
-      // If server responds with an error status, throw an exception
-      if (!response.ok) {
-        throw new Error("Server error: " + response.status);
-      }
+        const data = await response.json();
 
-      // Parse JSON response from the server
-      const data = await response.json();
+        if (data.error) {
+            results.textContent = data.error;
+            return;
+        }
 
-      // Display the result text returned by the server (or fallback message)
-      results.textContent = data.result || "No response from server.";
+        results.textContent = data.result;
+
+        // Display detected sensitive info
+        let detectedText = "";
+        if (data.detected) {
+            const { emails, ssns } = data.detected;
+            if (Object.keys(emails).length > 0) {
+                detectedText += "Emails: " + Object.keys(emails).join(", ") + "\n";
+            }
+            if (Object.keys(ssns).length > 0) {
+                detectedText += "SSNs: " + Object.keys(ssns).join(", ");
+            }
+        }
+        detected.textContent = detectedText || "No sensitive info detected.";
 
     } catch (err) {
-      results.textContent = "Error: " + err.message;
+        results.textContent = "Error: " + err.message;
     }
-  });
 });
