@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
-from livereload import Server  # 👈 import LiveReload
+from livereload import Server 
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # no caching
