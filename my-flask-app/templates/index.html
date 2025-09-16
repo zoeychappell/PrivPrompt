@@ -1,9 +1,48 @@
-<div class="results-section">
-  <h2>Sanitized Result</h2>
-  <div id="results"></div>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prompt App</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Prompt App</h1>
+      <div class="input-section">
+        <input
+          type="text"
+          id="promptInput"
+          placeholder="Enter your prompt here"
+        />
+        <button id="submitBtn">Submit</button>
+      </div>
 
-<div class="detected-section">
-  <h2>Detected Sensitive Info</h2>
-  <div id="detected"></div>
-</div>
+      <div class="results-section">
+        <h2>Original Prompt</h2>
+        <div id="originalPrompt" class="prompt-box">
+          Original prompt will appear here.
+        </div>
+      </div>
+
+      <div class="results-section">
+        <h2>Sanitized Prompt</h2>
+        <div id="sanitizedPrompt" class="prompt-box">
+          Sanitized prompt will appear here.
+        </div>
+      </div>
+
+      <div class="detected-section">
+        <h2>Detected Sensitive Info</h2>
+        <div id="detected" class="prompt-box">
+          Detected sensitive info will appear here.
+        </div>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  </body>
+</html>
