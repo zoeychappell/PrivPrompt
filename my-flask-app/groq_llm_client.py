@@ -13,8 +13,8 @@ from dotenv import load_dotenv
 def groq(user_input): 
     load_dotenv()
 
-    API_KEY = os.getenv('groq_api_key')
-    client = Groq(api_key = API_KEY)
+    GROQ_API_KEY = os.getenv('groq_api_key')
+    client = Groq(api_key = GROQ_API_KEY)
     chat_completion = client.chat.completions.create(
         messages=[
             {
