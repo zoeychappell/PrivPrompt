@@ -5,12 +5,11 @@ To use flask and run front end:
     3. Open virtual environment
         python3 -m venv venv
         source venv/bin/activate
-    4. Run and download the flask app.py
+    4. install flask and livereload
         pip install flask flask-cors
+        pip install livereload 
+    5. Run app.py
         python app.py
     5. Open in the browser the IP
-        http://127.0.0.1:5000
+        http://127.0.0.1:5001
 
-
-Might have to download  livereload
-pip install livereload 
