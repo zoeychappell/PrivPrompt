@@ -1,6 +1,6 @@
 from user_input import clean_input
-from sanitize import sanitize_input, fill_data   # 👈 import your sanitizer
-from llm_clients.groq_llm_client import groq
+from sanitize import sanitize_input
+from llm_clients.groq_llm_client import call_groq
 from llm_clients.cohere_llm_client import cohere
 
 LIST_OF_LLMS = ["Llama", "Cohere"]
@@ -48,19 +48,16 @@ class CLI:
                 self.show_help()
                 continue
 
-            # 🟢 Sanitize input here
             sanitized_input, dict_email, dict_ssn = sanitize_input(command)
-
+            response = "No response"
             # === Send to LLM ===
             if self.chosen_llm == "llama":
-                response = groq(sanitized_input)   
+                response = call_groq(sanitized_input)   
             elif self.chosen_llm == "cohere":
                 response = cohere(sanitized_input)
             else: 
-                response = f"Unknown LLM: {self.chosen_llm}"
+                response = f"There was an error."
 
-            # 🟢 Fill back original PII into LLM response
-            response = fill_data(dict_email, dict_ssn, response)
 
             print(f"\033[35m[{self.chosen_llm}]\033[0m \033[34mYou entered:\033[0m {command}")
             print(f"\033[34mLLM Response:\033[0m {response}")
