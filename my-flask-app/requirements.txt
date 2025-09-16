@@ -4,3 +4,5 @@ re
 openai
 groqgit
 cohere
+flask
+livereload
