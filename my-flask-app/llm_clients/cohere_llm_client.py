@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 def cohere(user_input):
     load_dotenv()
 
-    CO_API_KEY = os.getenv('cohere_api_key')
+    CO_API_KEY = os.getenv('COHERE_API_KEY')
     co = ClientV2(CO_API_KEY)
     response = co.chat(
         model="command-a-03-2025", 
