@@ -51,6 +51,16 @@ button:hover {
   margin-bottom: 20px;
 }
 
+#aiResponseOriginal, #aiResponseSanitized {
+  background-color: #eef6ff;
+  border: 1px solid #bcd4ff;
+  padding: 10px;
+  border-radius: 6px;
+  font-family: monospace;
+  white-space: pre-wrap;
+}
+
+
 .box pre {
   background: #f4f4f4;
   border: 1px solid #ddd;
