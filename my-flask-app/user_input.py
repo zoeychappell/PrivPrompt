@@ -19,13 +19,18 @@ def clean_input():
     # User input gathered.
     # print("Enter your text (Ctrl+Z Enter to finish):")
     # By using sys.stdin.read(), the program can accept multiple lines of input
-    print("Please type your message. Type 'Done' on a new line to finish.")
+    print("\033[1;36mPlease type your message. \033[0m \n" \
+    "\033[36mType 'Done' on a new line to finish.\n" \
+    "Type 'Exit Program' or CTRL-C to exit the program.\033[0m")
     lines = []
     for line in sys.stdin:
         # Note for sys.stdin - can introduce character limits
         # Checks if the user enters "done"
+        if line.strip().lower() == "exit program":
+            return "__EXIT__"
         if line.strip().lower() == "done":
             break
+
         # else, continues
         lines.append(line.rstrip("\n"))
 
