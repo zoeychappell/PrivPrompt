@@ -25,6 +25,7 @@ def call_groq(user_input):
     model="llama-3.3-70b-versatile",
     )
     llm_output = chat_completion.choices[0].message.content
+    print(llm_output)
     return llm_output
 
 def main():

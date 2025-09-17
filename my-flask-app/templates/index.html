@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Priv Prompt</title>
+    <title>PrivPrompt</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='style.css') }}"
@@ -11,8 +11,9 @@
   </head>
   <body>
     <div class="container">
-      <h1>Priv Prompt</h1>
+      <h1>PrivPrompt</h1>
 
+      <!-- Input Box -->
       <div class="input-box">
         <input
           type="text"
@@ -22,30 +23,37 @@
         <button id="submitBtn">Submit</button>
       </div>
 
+      <!-- Original Prompt -->
       <div class="box">
         <h2>Original Prompt</h2>
         <pre id="originalPrompt"></pre>
       </div>
 
+      <!-- Sanitized Prompt -->
       <div class="box">
         <h2>Sanitized Prompt</h2>
         <pre id="sanitizedPrompt"></pre>
       </div>
 
+      <!-- Detected Sensitive Info -->
       <div class="box">
         <h2>Detected Sensitive Info</h2>
         <pre id="detected"></pre>
       </div>
+
+      <!-- AI Response Original -->
       <div class="box">
         <h2>AI Response (Original Prompt)</h2>
         <pre id="aiResponseOriginal"></pre>
       </div>
 
+      <!-- AI Response Sanitized -->
       <div class="box">
         <h2>AI Response (Sanitized Prompt)</h2>
         <pre id="aiResponseSanitized"></pre>
       </div>
     </div>
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
   </body>
 </html>

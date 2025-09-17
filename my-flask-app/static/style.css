@@ -1,5 +1,5 @@
 body {
-  font-family: Arial, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   padding: 20px;
   background-color: #0a3d91; /* dark blue */
@@ -7,36 +7,40 @@ body {
 }
 
 .container {
-  max-width: 900px;
+  max-width: 1000px;
   margin: auto;
 }
 
 h1 {
   color: white;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  text-align: center;
+  font-size: 2.2rem;
 }
 
 .input-box {
   display: flex;
-  margin-bottom: 25px;
+  margin-bottom: 30px;
+  gap: 10px;
 }
 
 input[type="text"] {
   flex: 1;
-  padding: 10px;
+  padding: 12px;
   border: 1px solid #ccc;
-  border-radius: 6px;
-  margin-right: 10px;
+  border-radius: 8px;
+  font-size: 16px;
 }
 
 button {
-  padding: 10px 20px;
+  padding: 12px 24px;
   background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 16px;
+  transition: background 0.2s ease-in-out;
 }
 
 button:hover {
@@ -45,37 +49,33 @@ button:hover {
 
 .box {
   background: white;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  margin-bottom: 25px;
 }
-
-#aiResponseOriginal, #aiResponseSanitized {
-  background-color: #eef6ff;
-  border: 1px solid #bcd4ff;
-  padding: 10px;
-  border-radius: 6px;
-  font-family: monospace;
-  white-space: pre-wrap;
-}
-
-
-.box pre {
-  background: #f4f4f4;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 10px;
-  min-height: 60px;   /* ensures it looks like a box even if empty */
-  margin-top: 10px;
-  font-family: monospace;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
 
 h2 {
   margin-top: 0;
-  font-size: 20px;
+  margin-bottom: 12px;
+  font-size: 1.4rem;
   color: #0a3d91;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 6px;
+}
+
+pre {
+  margin: 0;
+  font-family: Consolas, monospace;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-size: 15px;
+  color: #333;
+}
+
+/* Add spacing between boxes in grid mode (optional upgrade) */
+@media (min-width: 768px) {
+  .box {
+    margin-bottom: 30px;
+  }
 }
