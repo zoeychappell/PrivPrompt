@@ -1,4 +1,5 @@
-from user_input import clean_input
+import sys
+#from user_input import clean_input
 from sanitize import sanitize_input
 from llm_clients.groq_llm_client import call_groq
 from llm_clients.cohere_llm_client import cohere
@@ -9,24 +10,70 @@ class CLI:
     def __init__(self):
         self.chosen_llm = None
 
+    '''
+    Function that takes in the user input, then cleans the input. 
+    Parameters: 
+        - user_input : The string returned from user_input function. 
+    Returns: 
+        - cleaned_user_input : A nicely formatted string'''
+    def clean_input(self):
+        # By using sys.stdin.read(), the program can accept multiple lines of input
+        print("\033[1;36mPlease type your message. \033[0m \n" \
+        "\033[36mType \033[33m'Done'\033[0m \033[36m on a new line to finish.\n" \
+        "Type \033[33m'Exit Program'\033[0m \033[36mor \033[33mCTRL-C\033[0m \033[36m to exit the program.\033[0m")
+        lines = []
+        # Iterates through each line the user enteres.
+        for line in sys.stdin:
+            # Note for sys.stdin - can introduce character limits
+            # Checks if the user enters "exit program"
+            if line.strip().lower() == "exit program":
+                return "__EXIT__"
+            # User enters 'done' when they want to send the prompt to the LLM
+            if line.strip().lower() == "done":
+                break
+
+            # Removes the new lines
+            lines.append(line.rstrip("\n"))
+        # Joins the user input into one big string separated by spaces
+        user_text = " ".join(lines)
+        # Verifies that all new lines are removed and trims whitespace
+        cleaned_user_input = user_text.replace("\n", "").replace("\r", "")
+        # Return the cleaned input and trims whitespace.
+        return cleaned_user_input.strip()
+    
+    '''
+    This function prints a help menu for the user. 
+    Parameters: 
+        - self
+    Returns: 
+        - None
+    '''
     def show_help(self):
         print("\033[36m" + "="*40)
         print("                Help Menu")
         print("="*40 + "\033[0m")
         print("\033[34mAvailable commands at any time:\033[0m")
         print("  \033[33mhelp / h / ?\033[0m  -> Show this help menu")
-        print("  \033[33mexit / Done\033[0m   -> Quit the program")
+        print("  \033[33mExit Program\033[0m   -> Quit the program")
+        print("  \033[33mDone\033[0m   -> Finish the prompt and send it to the LLM")
         print("\033[36m" + "="*40 + "\033[0m")
 
-    
+    '''
+    This function is responsible for continuous prompting, printing the program, and controlling the cli. 
+    Parameters: 
+        - self
+    Returns: 
+        - None
+    '''
     def cli(self):
+        # Wraps the entire CLI program in a try statement to accept keyboard shortcuts
         try: 
             print("\n\033[1;34m=== Welcome to PrivPrompt! ===\033[0m\n")
 
-
+            # Creates a list of available LLMs controlled by the global variable LIST_OF_LLMS
             print("\033[1;34mAvailable LLMs: \033[0m")
             llm_lookup = {llm.lower(): llm for llm in LIST_OF_LLMS}
-
+            # Prints a pretty version of the llm_lookup table to the user
             for id, llm in enumerate(LIST_OF_LLMS, start=1):
                 print(f"   \033[36m{id}. {llm}")
             
@@ -44,7 +91,7 @@ class CLI:
             
             # === Main loop ===
             while True:
-                command = clean_input()
+                command = self.clean_input()
 
                 if command == '__EXIT__':
                     print("\n\033[1;32mThanks for using PrivPrompt! Goodbye.\033[0m\n")
@@ -69,6 +116,7 @@ class CLI:
                 print(f"\033[34mYou entered:\033[0m {command}")
                 print(f"\033[34mLLM Response:\033[0m {response}")
                 print("\033[35m" + "-"*40 + "\033[0m\n")
+
         except KeyboardInterrupt: 
             print("\n\033[1;31mProgram interrupted by user. \033[1;32m\nThanks for using PrivPrompt! Goodbye.\033[0m\n")
 
