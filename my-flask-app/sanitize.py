@@ -1,4 +1,6 @@
 import re
+# for name recognition
+import spacy
 
 def sanitize_input(user_input): 
     EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}") # Matches email addresses 
@@ -25,4 +27,19 @@ def sanitize_input(user_input):
         user_input = user_input.replace(s, dict_ssn[s])
         s_counter += 1
 
+    # Names
+    # Load a pre-trained English model (you might need to download it first: python -m spacy download en_core_web_sm)
+    nlp = spacy.load("en_core_web_sm")
+
+    text = user_input
+    doc = nlp(text)
+
+    person_names = []
+    for ent in doc.ents:
+        if ent.label_ == "PERSON":
+            person_names.append(ent.text)
+
+    print(f"Identified person names: {person_names}")
     return user_input, dict_email, dict_ssn
+
+
