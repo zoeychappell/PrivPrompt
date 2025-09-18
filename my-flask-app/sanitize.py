@@ -10,6 +10,7 @@ def sanitize_input(user_input):
     SSN_PATTERN_4 = re.compile(r"\d{3}-\d{2} \d{4}") # Matches format ###-## ####
     dict_email = {}
     dict_ssn = {}
+    dict_name = {}
 
     # Emails
     email_matches = EMAIL_PATTERN.findall(user_input)
@@ -38,8 +39,12 @@ def sanitize_input(user_input):
     for ent in doc.ents:
         if ent.label_ == "PERSON":
             person_names.append(ent.text)
-
-    print(f"Identified person names: {person_names}")
-    return user_input, dict_email, dict_ssn
+    n_counter = 1
+    for n in person_names: 
+        dict_name[n] = f"name{n_counter}"
+        user_input = user_input.replace(n, dict_name[n])
+        n_counter = n_counter + 1
+    print(dict_name)
+    return user_input, dict_email, dict_ssn, dict_name
 
 
