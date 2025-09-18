@@ -8,6 +8,7 @@ def sanitize_input(user_input):
     SSN_PATTERN_2 = re.compile(r"\d{3} \d{2} \d{4}") # Matches format ### ## ####
     SSN_PATTERN_3 = re.compile(r"\d{3} \d{2}-\d{4}") # Matches format ### ##-####
     SSN_PATTERN_4 = re.compile(r"\d{3}-\d{2} \d{4}") # Matches format ###-## ####
+    SSN_PATTERN_5  = re.compile(r"\d[0-9]{9}")
     dict_email = {}
     dict_ssn = {}
     dict_name = {}
