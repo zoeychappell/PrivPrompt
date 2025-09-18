@@ -100,7 +100,7 @@ class CLI:
                     self.show_help()
                     continue
 
-                sanitized_input, dict_email, dict_ssn = sanitize_input(command)
+                sanitized_input, dict_email, dict_ssn, dict_name = sanitize_input(command)
                 response = "No response"
                 # === Send to LLM ===
                 if self.chosen_llm == "llama":
