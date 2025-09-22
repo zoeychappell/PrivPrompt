@@ -14,6 +14,27 @@ By using dotenv, API keys can be set as an environment variable and not included
 2. Create a .env file in your environment. 
 3. Add an entry in the following format: 
     api_key = "your_api_key"
+# To use flask and run front end:
+
+    1. Open Terminal
+    2. Go to the location of the /my-flask-app
+        cd /Users/adambraccia/Documents/GitHub/PrivPrompt/my-flask-app
+    3. Open virtual environment
+        python3 -m venv venv
+        source venv/bin/activate
+    4. install flask and livereload and others
+        pip install flask flask-cors
+        pip install livereload
+        pip install spacy
+        python -m spacy download en_core_web_sm
+        pip install groq
+        pip install python-dotenv
+
+
+    5. Run app.py
+        python app.py
+    5. Open in the browser the IP
+        http://127.0.0.1:5001
 
 # How to get a Groq API key
 
