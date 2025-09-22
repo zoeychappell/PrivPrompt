@@ -5,6 +5,25 @@ from spacy.pipeline import EntityRuler
 # For human name recognition
 import stanza
 
+'''
+This function will take in a filepath, try to open it, and 
+add the contents of the file to a list. 
+Parameters: 
+    filepath (str) : Path to the file with the names
+Returns: 
+    names_list (list) : The new list with all the names
+'''
+def open_file(filepath):
+    names_list = []
+    try: 
+        with open(filepath, mode = 'r') as file:
+            for lines in file: 
+               line = lines.rstrip()
+               names_list.append(line)
+        file.close()
+    except FileNotFoundError as fnfe:
+        print("The file is not found. ")
+    return names_list
 
 def sanitize_input(user_input): 
     EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}") # Matches email addresses 
@@ -46,7 +65,9 @@ def sanitize_input(user_input):
     # Load a pre-trained English model (you might need to download it first: python -m spacy download en_core_web_sm)
     nlp = spacy.load("en_core_web_sm")
     ruler = nlp.add_pipe('entity_ruler', before="ner")
-    patterns = [{"label": "PERSON", "pattern": name} for name in ['zoey', 'john']]
+    names_list = open_file('data/female_lower.txt')
+    names_list = open_file('data/male_lower.txt')
+    patterns = [{"label": "PERSON", "pattern": name} for name in names_list]
     ruler.add_patterns(patterns)
 
     # Note: spacy has a displaCy visualizer 
