@@ -64,11 +64,11 @@ def sanitize_input(user_input):
 
     # Load a pre-trained English model (you might need to download it first: python -m spacy download en_core_web_sm)
     nlp = spacy.load("en_core_web_sm")
-    ruler = nlp.add_pipe('entity_ruler', before="ner")
-    names_list = open_file('data/female_lower.txt')
-    names_list = open_file('data/male_lower.txt')
-    patterns = [{"label": "PERSON", "pattern": name} for name in names_list]
-    ruler.add_patterns(patterns)
+    # ruler = nlp.add_pipe('entity_ruler', before="ner")
+    # names_list = open_file('data/female_lower.txt')
+    #names_list = open_file('data/male_lower.txt')
+    #patterns = [{"label": "PERSON", "pattern": name} for name in names_list]
+    #ruler.add_patterns(patterns)
 
     # Note: spacy has a displaCy visualizer 
     text = user_input
