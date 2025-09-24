@@ -6,3 +6,6 @@ groqgit
 cohere
 flask
 livereload
+spacy
+nltk.corpus
+google-genai
