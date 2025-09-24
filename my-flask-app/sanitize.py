@@ -4,7 +4,7 @@ import spacy
 from spacy.pipeline import EntityRuler
 # For human name recognition
 import stanza
-
+from nltk.corpus import words
 '''
 This function will take in a filepath, try to open it, and 
 add the contents of the file to a list. 
@@ -26,6 +26,8 @@ def open_file(filepath):
     return names_list
 
 def sanitize_input(user_input): 
+
+
     EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}") # Matches email addresses 
     SSN_PATTERN_1 = re.compile(r"\d{3}-\d{2}-\d{4}") # Matches format ###-##-####
     SSN_PATTERN_2 = re.compile(r"\d{3} \d{2} \d{4}") # Matches format ### ## ####
@@ -62,6 +64,8 @@ def sanitize_input(user_input):
     # Names
     # #####################
 
+    # Load the English words list (it's a set for fast lookup)
+    english_words = set(w.lower() for w in words.words())
     # Load a pre-trained English model (you might need to download it first: python -m spacy download en_core_web_sm)
     nlp = spacy.load("en_core_web_sm")
     # ruler = nlp.add_pipe('entity_ruler', before="ner")
@@ -73,20 +77,27 @@ def sanitize_input(user_input):
     # Note: spacy has a displaCy visualizer 
     text = user_input
     doc = nlp(text)
-    
-    person_names = []
-    for ent in doc.ents:
+    sub_toks = [tok for tok in doc if (tok.dep_=="nsubj")]
+    person_names = {ent.text for ent in doc.ents if ent.label_ == "PERSON"}
+    '''for ent in doc.ents:
         if ent.label_ == "PERSON":
-            person_names.append(ent.text)
+            person_names.append(ent.text)'''
     n_counter = 1
+    for subject in sub_toks:
+        # Is the subject a person? If no, 
+        if subject.text.lower() in english_words:
+            continue
+        # If yes
+        else: 
+            person_names.add(subject.text)
     for n in person_names: 
         if n == 'Email' or n == 'Volunteer':
             person_names.remove(n)
         dict_name[n] = f"name{n_counter}"
         user_input = user_input.replace(n, dict_name[n])
         n_counter = n_counter + 1
-    print(dict_name)
-    '''
+    
+        '''
     Note from zoey: 
     I'm currently testing out solutions for name recognition. 
     Stanza is slower and tends seems to be about the same as spaCy
@@ -127,3 +138,10 @@ Fail cases found:
         Lui Fang
 '''
 
+def main(): 
+    sanitize_input("zoey is my friend")
+    sanitize_input("john is my buddy. ")
+    sanitize_input("apple is my friend")
+
+if __name__ == '__main__':
+    main()
