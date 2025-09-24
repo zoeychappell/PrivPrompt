@@ -41,3 +41,24 @@ By using dotenv, API keys can be set as an environment variable and not included
 1. Create an groq account and login. 
 2. Go to https://console.groq.com/keys and select "Create API Key" in the upper right. 
 3. Follow the steps and copy the API key. 
+
+# How to get a Cohere API key
+1. Go to https://dashboard.cohere.com/welcome/login and create a new account. 
+2. Navigate to the API Keys button in the left menu
+3. Make a new TRIAL KEY - NOT the production key
+4. Add the api key to your .env file by following the dotenv instructions.
+5. IMPORTANT: Make sure to follow the naming scheme 
+		COHERE_API_KEY=’<your key>’
+
+# How to get a Google AI Stuido API Key
+1. Go to https://aistudio.google.com/prompts/new_chat and create an account. 
+2. Select “Get API Key” in the bottom left. 
+3. Create a new project by selecting "Project" from the menu on the left. 
+4. Select "Create a new project" in the upper right and follow steps. 
+5. Select "Api keys" in the menu on the left. 
+6. Select "Create API Key" in the upper right. 
+7. Name your key and select the appropriate project. 
+8. Add the API key to your .env file by following the dotenv instructions. 
+9. IMPORTANT: Make sure to follow the naming scheme
+    GEMINI_API_KEY='<your key>'
+
