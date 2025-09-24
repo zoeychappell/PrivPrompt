@@ -3,8 +3,9 @@ import sys
 from sanitize import sanitize_input
 from llm_clients.groq_llm_client import call_groq
 from llm_clients.cohere_llm_client import cohere
+from llm_clients.google_genai_llm_client import call_genai
 
-LIST_OF_LLMS = ["Llama", "Cohere"]
+LIST_OF_LLMS = ["Llama", "Cohere", "Gemini"]
 
 class CLI: 
     def __init__(self):
@@ -107,6 +108,8 @@ class CLI:
                     response = call_groq(sanitized_input)   
                 elif self.chosen_llm == "cohere":
                     response = cohere(sanitized_input)
+                elif self.chosen_llm == "gemini":
+                    response = call_genai(sanitized_input)
                 else: 
                     response = f"There was an error."
 
