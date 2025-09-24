@@ -1,34 +1,25 @@
 import re
-# for name recognition
+# For name recognition
 import spacy
-from spacy.pipeline import EntityRuler
-# For human name recognition
-import stanza
+# from spacy.pipeline import EntityRuler
+# For English word checking
 from nltk.corpus import words
-'''
-This function will take in a filepath, try to open it, and 
-add the contents of the file to a list. 
-Parameters: 
-    filepath (str) : Path to the file with the names
-Returns: 
-    names_list (list) : The new list with all the names
-'''
-def open_file(filepath):
-    names_list = []
-    try: 
-        with open(filepath, mode = 'r') as file:
-            for lines in file: 
-               line = lines.rstrip()
-               names_list.append(line)
-        file.close()
-    except FileNotFoundError as fnfe:
-        print("The file is not found. ")
-    return names_list
 
+'''
+This function is the primary sanitization function. 
+Parameters: 
+    - user_input : A string entered by the user. The prompt. 
+Outputs: 
+    - dict_email : a dictionary containing the found emails and replacement email
+    - dict_ssn : a dictionary containing the found SSNs and replacement SSN
+    - dict_name : a dictionary containing the found names and replacement names. 
+    '''
 def sanitize_input(user_input): 
 
 
     EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}") # Matches email addresses 
+    EMAIL_PATTERN_2 = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\,[a-zA-Z]{2,}") # Matches email addresses with comma typo
+
     SSN_PATTERN_1 = re.compile(r"\d{3}-\d{2}-\d{4}") # Matches format ###-##-####
     SSN_PATTERN_2 = re.compile(r"\d{3} \d{2} \d{4}") # Matches format ### ## ####
     SSN_PATTERN_3 = re.compile(r"\d{3} \d{2}-\d{4}") # Matches format ### ##-####
@@ -42,22 +33,34 @@ def sanitize_input(user_input):
     # Emails
     # #####################
 
-    email_matches = EMAIL_PATTERN.findall(user_input)
-    counter = 1
+    # Checks the user input for any strings matching the regex pattern. 
+    email_matches = EMAIL_PATTERN.findall(user_input) + EMAIL_PATTERN_2.findall(user_input)
+    # Initializes an email counter
+    email_counter = 1
+    # Iterates through found emails
     for e in email_matches:
-        dict_email[e] = f"user{counter}@email.com"
+        # Maps the email to a fake email user#@email.com
+        dict_email[e] = f"user{email_counter}@email.com"
+        # Replaces the found emails with user#@email.com
         user_input = user_input.replace(e, dict_email[e])
-        counter += 1
+        # Iterate the email counter by one
+        email_counter += 1
     
     # #####################
     # SSNs
     # #####################
 
+    # Checks the user input for any strings matching the regex pattern. 
     ssn_matches = SSN_PATTERN_1.findall(user_input) + SSN_PATTERN_2.findall(user_input) + SSN_PATTERN_3.findall(user_input) + SSN_PATTERN_4.findall(user_input)
+    # Initialize an ssn counter. 
     s_counter = 1
+    # For each match found.
     for s in ssn_matches:
+        # Maps the ssn with format XXX-XX-100#
         dict_ssn[s] = f"XXX-XX-{1000+s_counter:04d}"
+        # Replaces the found ssns with the XXX-XX-100#
         user_input = user_input.replace(s, dict_ssn[s])
+        # Iterates the SSN counter
         s_counter += 1
 
     # #####################
@@ -68,45 +71,35 @@ def sanitize_input(user_input):
     english_words = set(w.lower() for w in words.words())
     # Load a pre-trained English model (you might need to download it first: python -m spacy download en_core_web_sm)
     nlp = spacy.load("en_core_web_sm")
-    # ruler = nlp.add_pipe('entity_ruler', before="ner")
-    # names_list = open_file('data/female_lower.txt')
-    #names_list = open_file('data/male_lower.txt')
-    #patterns = [{"label": "PERSON", "pattern": name} for name in names_list]
-    #ruler.add_patterns(patterns)
-
-    # Note: spacy has a displaCy visualizer 
-    text = user_input
-    doc = nlp(text)
+    # Initialize the NLP
+    doc = nlp(user_input)
+    # Identify all subjects in the sentence
     sub_toks = [tok for tok in doc if (tok.dep_=="nsubj")]
+    # Identify all the entities with PERSON label
     person_names = {ent.text for ent in doc.ents if ent.label_ == "PERSON"}
-    '''for ent in doc.ents:
-        if ent.label_ == "PERSON":
-            person_names.append(ent.text)'''
+    # Initialize a name counter
     n_counter = 1
+    # For each subject found in the sub_toks
     for subject in sub_toks:
         # Is the subject a person? If no, 
         if subject.text.lower() in english_words:
             continue
         # If yes
         else: 
+            # Add the person to the persons_name set.
             person_names.add(subject.text)
-    for n in person_names: 
-        if n == 'Email' or n == 'Volunteer':
-            person_names.remove(n)
-        dict_name[n] = f"name{n_counter}"
-        user_input = user_input.replace(n, dict_name[n])
+    # For each person in the set
+    for name in person_names: 
+        # Checks for common FPs and removes
+        if name == 'Email' or name == 'Volunteer':
+            person_names.remove(name)
+        # Maps the name to a dummy value = name#
+        dict_name[name] = f"name{n_counter}"
+        # Replaces the name with the dummy value in the string
+        user_input = user_input.replace(name, dict_name[name])
+        # Iterates the name counter
         n_counter = n_counter + 1
-    
-        '''
-    Note from zoey: 
-    I'm currently testing out solutions for name recognition. 
-    Stanza is slower and tends seems to be about the same as spaCy
-    so i'm not sold yet 
-    --------------------------
-    nlp_stanza = stanza.Pipeline('en')
-    doc_stanza = nlp_stanza("Zoey Is A Person, so is Barack Obama")
-    print(doc_stanza.entities)
-    '''
+
     return user_input, dict_email, dict_ssn, dict_name
 
 
