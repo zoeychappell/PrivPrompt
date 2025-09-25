@@ -8,12 +8,17 @@ We are guided by Faculty advisor Yidan Hu.
 # Team Members
 Zoey Chappell, Adam Braccia, and Minn Myint
 
+# Download all dependencies
+1. run the command 'pip install -r requirements.txt'
+
 # How to Set Up a dotenv environment 
 By using dotenv, API keys can be set as an environment variable and not included directly in the code. 
 1. Import dotenv
-2. Create a .env file in your environment. 
+2. Create a file names '.env' in the root directory. .env 
 3. Add an entry in the following format: 
     api_key = "your_api_key"
+    NOTE: Each LLM has a specific naming scheme that the API key should follow. 
+
 # To use flask and run front end:
 
     1. Open Terminal
