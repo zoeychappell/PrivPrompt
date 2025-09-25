@@ -46,7 +46,10 @@ document.addEventListener("DOMContentLoaded", () => {
       // Update detected sensitive info
       let detectedText = "";
       if (data.detected) {
-        const { emails, ssns } = data.detected;
+        const { emails, ssns, names } = data.detected;
+        if (Object.keys(names).length > 0) {
+          detectedText += "Names: " + Object.keys(names).join(", ") + "\n";
+        }
         if (Object.keys(emails).length > 0) {
           detectedText += "Emails: " + Object.keys(emails).join(", ") + "\n";
         }
