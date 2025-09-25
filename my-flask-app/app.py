@@ -26,11 +26,29 @@ def handle_prompt():
     ai_response_original = call_groq(prompt)
     ai_response_sanitized = call_groq(sanitized_prompt)
 
+    # UNCOMMENT CODE FOR QA TESTING
+    # Requires the text1, text2, and textresponse .txt files in ./PrivPrompt/ (can reconfigure it as you like)
+    # Must run app.py inside the ./PrivPrompt/ folder (can reconfigure it as you like)
+    #   python my-flask-app/app.py
+    #
+    # Appends both responses to textresponse.txt with 5 newlines between (empty file once in a while)
+    # with open("../PrivPrompt/textresponse.txt", "a", encoding="utf-8") as f:
+    #     f.write(ai_response_original + "\n" * 5 + ai_response_sanitized + "\n" * 5)
+
+    # # Writes each response to its own file (overwriting existing content)
+    # with open("../PrivPrompt/text1.txt", "w", encoding="utf-8") as f1:
+    #     f1.write(ai_response_original)
+
+    # with open("../PrivPrompt/text2.txt", "w", encoding="utf-8") as f2:
+    #     f2.write(ai_response_sanitized)
+
+
     return jsonify({
         "result": sanitized_prompt,
         "detected": {
             "emails": dict_email,
-            "ssns": dict_ssn
+            "ssns": dict_ssn,
+            "names": dict_name
         },
         "ai_original": ai_response_original,
         "ai_sanitized": ai_response_sanitized
