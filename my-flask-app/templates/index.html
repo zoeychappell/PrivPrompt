@@ -14,14 +14,51 @@
       <h1>PrivPrompt</h1>
 
       <!-- Input Box -->
+      <style>
+      .input-box {
+        display: flex;
+        gap: 0.5rem;           /* space between textarea and button */
+      }
+
+      #promptInput {
+        /* Make the textarea look like the original input */
+        font-family: 'Roboto', sans-serif;
+        font-size: 20px;
+        line-height: 1.2;
+        padding: 0.4em 0.6em;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+
+        /* Auto-resize behaviour */
+        width: 100%;
+        overflow: hidden;      /* hide scrollbar */
+        resize: none;          /* prevent manual dragging */
+      }
+
+      #submitBtn {
+        padding: 0.4em 1em;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+      </style>
+
       <div class="input-box">
-        <input
-          type="text"
+        <textarea
           id="promptInput"
           placeholder="Enter your prompt here..."
-        />
+          rows="1"
+        ></textarea>
         <button id="submitBtn">Submit</button>
       </div>
+
+      <script>
+      const ta = document.getElementById('promptInput');
+      ta.addEventListener('input', function () {
+        this.style.height = 'auto';                 // shrink if needed
+        this.style.height = this.scrollHeight + 'px';// grow to fit content
+      });
+      </script>
 
       <!-- Original Prompt -->
       <div class="box">
@@ -29,16 +66,16 @@
         <pre id="originalPrompt"></pre>
       </div>
 
-      <!-- Sanitized Prompt -->
-      <div class="box">
-        <h2>Sanitized Prompt</h2>
-        <pre id="sanitizedPrompt"></pre>
-      </div>
-
       <!-- Detected Sensitive Info -->
       <div class="box">
         <h2>Detected Sensitive Info</h2>
         <pre id="detected"></pre>
+      </div>
+
+      <!-- Sanitized Prompt -->
+      <div class="box">
+        <h2>Sanitized Prompt</h2>
+        <pre id="sanitizedPrompt"></pre>
       </div>
 
       <!-- AI Response Original -->
