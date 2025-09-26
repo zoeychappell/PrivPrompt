@@ -13,9 +13,8 @@ Outputs:
     - dict_email : a dictionary containing the found emails and replacement email
     - dict_ssn : a dictionary containing the found SSNs and replacement SSN
     - dict_name : a dictionary containing the found names and replacement names. 
-    '''
+'''
 def sanitize_input(user_input): 
-
 
     EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}") # Matches email addresses 
     EMAIL_PATTERN_2 = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\,[a-zA-Z]{2,}") # Matches email addresses with comma typo
@@ -25,6 +24,16 @@ def sanitize_input(user_input):
     SSN_PATTERN_3 = re.compile(r"\d{3} \d{2}-\d{4}") # Matches format ### ##-####
     SSN_PATTERN_4 = re.compile(r"\d{3}-\d{2} \d{4}") # Matches format ###-## ####
     SSN_PATTERN_5  = re.compile(r"\d[0-9]{9}")
+
+    DATE_PATTERN_1 = re.compile(r"\d{2}\/\d{2}\/\d{4}") # matches for ##/##/#### ex. 01/03/2024
+    DATE_PATTERN_2 = re.compile(r"\d{1}\/\d{1}\/\d{2}") # Matches for #/#/## ex. 1/3/24
+
+    # Matches for #/#/#### ex. 1/3/2024
+    # Matches for ##/#/#### ex. 01/3/2024
+    # Matches for 
+    # do boht month/day/year and day/month/year
+
+    
     dict_email = {}
     dict_ssn = {}
     dict_name = {}
@@ -99,7 +108,7 @@ def sanitize_input(user_input):
         user_input = user_input.replace(name, dict_name[name])
         # Iterates the name counter
         n_counter = n_counter + 1
-
+    print(dict_name)
     return user_input, dict_email, dict_ssn, dict_name
 
 
@@ -132,9 +141,7 @@ Fail cases found:
 '''
 
 def main(): 
-    sanitize_input("zoey is my friend")
-    sanitize_input("john is my buddy. ")
-    sanitize_input("apple is my friend")
+    sanitize_input("Susan Davis recently got married. ")
 
 if __name__ == '__main__':
     main()
