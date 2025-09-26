@@ -49,7 +49,9 @@ def handle_prompt():
     #     json.dump({
     #         "emails": dict_email,
     #         "ssns":   dict_ssn,
-    #         "names":  dict_name
+    #         "names":  dict_name,
+    #         "prompt": prompt,
+    #         "sanitized_prompt": sanitized_prompt
     #     }, f, indent=2)
 
 
