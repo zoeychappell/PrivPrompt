@@ -19,7 +19,7 @@ DATE_PATTERN_1 = re.compile(r"\d{2}\/\d{2}\/\d{4}") # matches for ##/##/#### ex.
 DATE_PATTERN_2 = re.compile(r"\d{1}\/\d{1}\/\d{2}") # Matches for #/#/## ex. 1/3/24
 
    
-
+    # TO DOs
     # Matches for #/#/#### ex. 1/3/2024
     # Matches for ##/#/#### ex. 01/3/2024
     # Matches for 
@@ -136,7 +136,7 @@ def sanitize_ssns(user_input):
         # Iterates the SSN counter
         s_counter += 1
     print(dict_ssn)
-    return dict_ssn
+    return user_input, dict_ssn
 
 def sanitize_emails(user_input):
     dict_email = {}
@@ -153,7 +153,7 @@ def sanitize_emails(user_input):
         # Iterate the email counter by one
         email_counter += 1
     print(dict_email)
-    return dict_email
+    return user_input, dict_email
 '''
 This function is the primary sanitization function. 
 Parameters: 
@@ -174,13 +174,13 @@ def sanitize_input(user_input):
     # Emails
     # #####################
 
-    dict_email = sanitize_emails(user_input)
+    user_input, dict_email = sanitize_emails(user_input)
     
     # #####################
     # SSNs
     # #####################
 
-    dict_ssns = sanitize_ssns(user_input)
+    user_input, dict_ssn = sanitize_ssns(user_input)
 
     # #####################
     # Names
