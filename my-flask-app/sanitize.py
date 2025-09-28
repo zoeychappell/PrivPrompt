@@ -4,7 +4,17 @@ import spacy
 # from spacy.pipeline import EntityRuler
 # For English word checking
 from nltk.corpus import words
+import unicodedata
 
+def normalize(string):
+    string = unicodedata.normalize("NFKC", string)
+    return re.sub(r'^\W+|\W+$', '', string).strip()
+
+def is_token_suffix(string_a, string_b):
+    a_tokens = string_a.lower().split()
+    b_tokens = string_b.lower().split()
+    return len(a_tokens) < len(b_tokens) and a_tokens == b_tokens[-len(a_tokens):]
+ 
 '''
 This function is the primary sanitization function. 
 Parameters: 
@@ -85,27 +95,67 @@ def sanitize_input(user_input):
     # Identify all subjects in the sentence
     sub_toks = [tok for tok in doc if (tok.dep_=="nsubj")]
     # Identify all the entities with PERSON label
-    person_names = {ent.text for ent in doc.ents if ent.label_ == "PERSON"}
+    canditates_name = set()
+    orig_map = {}
+    for ent in doc.ents:
+        if ent.label_ == "PERSON":
+            norm = normalize(ent.text)
+            if norm: 
+                canditates_name.add(norm)
+                orig_map.setdefault(norm, []).append(ent.text)
+
+
+    # For each subject found in the sub_toks
+    for subj in sub_toks:
+        if (
+            # Check that the word is not a normal english word
+            subj.text.lower() not in english_words
+            # Following three checks for email identification issue.
+            and not subj.text in dict_email
+            and not EMAIL_PATTERN.match(subj.text)
+            and not EMAIL_PATTERN_2.match(subj.text) 
+        ):
+            norm = normalize(subj.text)
+            if norm: 
+                canditates_name.add(norm)
+                orig_map.setdefault(norm, []).append(subj.text)
+
+
+    # fulter out names (ex. Susan Davis and Davis)
+    filtered = {name for name in canditates_name
+                if not any(is_token_suffix(name, other) for other in canditates_name) }
+
+    person_names = set()
+    for norm in filtered:
+        originals = orig_map.get(norm, [norm])
+        chosen = max(originals, key=lambda s: len(s.split()))
+        person_names.add(chosen)
+
+    # Remove known False Positives
+    cleaned_names = set()
+
+    for name in person_names:
+        if name.lower() in  {"email", "volunteer"}:
+            continue
+        if EMAIL_PATTERN.match(name.lower()):
+            continue
+        if EMAIL_PATTERN_2.match(name.lower()):
+            continue
+        if any(fake_email in name for fake_email in dict_email.values()):
+            continue
+        cleaned_names.add(name)
+    # Update person_names
+    person_names = cleaned_names
+
+
     # Initialize a name counter
     n_counter = 1
-    # For each subject found in the sub_toks
-    for subject in sub_toks:
-        # Is the subject a person? If no, 
-        if subject.text.lower() in english_words:
-            continue
-        # If yes
-        else: 
-            # Add the person to the persons_name set.
-            person_names.add(subject.text)
-    # For each person in the set
-    for name in person_names: 
-        # Checks for common FPs and removes
-        if name == 'Email' or name == 'Volunteer':
-            person_names.remove(name)
+    for name in person_names:
         # Maps the name to a dummy value = name#
         dict_name[name] = f"name{n_counter}"
         # Replaces the name with the dummy value in the string
-        user_input = user_input.replace(name, dict_name[name])
+        pattern = r"\b" + re.escape(name) + r"\b"
+        user_input = re.sub(pattern, dict_name[name], user_input)
         # Iterates the name counter
         n_counter = n_counter + 1
     print(dict_name)
@@ -141,7 +191,7 @@ Fail cases found:
 '''
 
 def main(): 
-    sanitize_input("Susan Davis recently got married. ")
+    sanitize_input("Susan Davis (Email SDavis@gma.com, SSN 421-37-1396) recently got married.")
 
 if __name__ == '__main__':
     main()
