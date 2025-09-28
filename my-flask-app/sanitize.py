@@ -6,6 +6,26 @@ import spacy
 from nltk.corpus import words
 import unicodedata
 
+EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}") # Matches email addresses 
+EMAIL_PATTERN_2 = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\,[a-zA-Z]{2,}") # Matches email addresses with comma typo
+
+SSN_PATTERN_1 = re.compile(r"\d{3}-\d{2}-\d{4}") # Matches format ###-##-####
+SSN_PATTERN_2 = re.compile(r"\d{3} \d{2} \d{4}") # Matches format ### ## ####
+SSN_PATTERN_3 = re.compile(r"\d{3} \d{2}-\d{4}") # Matches format ### ##-####
+SSN_PATTERN_4 = re.compile(r"\d{3}-\d{2} \d{4}") # Matches format ###-## ####
+SSN_PATTERN_5  = re.compile(r"\d[0-9]{9}")
+
+DATE_PATTERN_1 = re.compile(r"\d{2}\/\d{2}\/\d{4}") # matches for ##/##/#### ex. 01/03/2024
+DATE_PATTERN_2 = re.compile(r"\d{1}\/\d{1}\/\d{2}") # Matches for #/#/## ex. 1/3/24
+
+   
+
+    # Matches for #/#/#### ex. 1/3/2024
+    # Matches for ##/#/#### ex. 01/3/2024
+    # Matches for 
+    # do boht month/day/year and day/month/year
+
+
 def normalize(string):
     string = unicodedata.normalize("NFKC", string)
     return re.sub(r'^\W+|\W+$', '', string).strip()
@@ -14,77 +34,18 @@ def is_token_suffix(string_a, string_b):
     a_tokens = string_a.lower().split()
     b_tokens = string_b.lower().split()
     return len(a_tokens) < len(b_tokens) and a_tokens == b_tokens[-len(a_tokens):]
- 
 '''
-This function is the primary sanitization function. 
+This function is responsible for only sanitizing names. It is called
+in sanitize_input()
 Parameters: 
-    - user_input : A string entered by the user. The prompt. 
-Outputs: 
-    - dict_email : a dictionary containing the found emails and replacement email
-    - dict_ssn : a dictionary containing the found SSNs and replacement SSN
-    - dict_name : a dictionary containing the found names and replacement names. 
-'''
-def sanitize_input(user_input): 
+    - user_input : string containing the original prompt
+    - dict_email : dictionary of found emails. 
+Returns: 
+    - user_input : string with the original prompt but no names. 
+    - dict_name : dictionary of found names.'''
+def sanitize_names(user_input, dict_email):
 
-    EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}") # Matches email addresses 
-    EMAIL_PATTERN_2 = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\,[a-zA-Z]{2,}") # Matches email addresses with comma typo
-
-    SSN_PATTERN_1 = re.compile(r"\d{3}-\d{2}-\d{4}") # Matches format ###-##-####
-    SSN_PATTERN_2 = re.compile(r"\d{3} \d{2} \d{4}") # Matches format ### ## ####
-    SSN_PATTERN_3 = re.compile(r"\d{3} \d{2}-\d{4}") # Matches format ### ##-####
-    SSN_PATTERN_4 = re.compile(r"\d{3}-\d{2} \d{4}") # Matches format ###-## ####
-    SSN_PATTERN_5  = re.compile(r"\d[0-9]{9}")
-
-    DATE_PATTERN_1 = re.compile(r"\d{2}\/\d{2}\/\d{4}") # matches for ##/##/#### ex. 01/03/2024
-    DATE_PATTERN_2 = re.compile(r"\d{1}\/\d{1}\/\d{2}") # Matches for #/#/## ex. 1/3/24
-
-    # Matches for #/#/#### ex. 1/3/2024
-    # Matches for ##/#/#### ex. 01/3/2024
-    # Matches for 
-    # do boht month/day/year and day/month/year
-
-    
-    dict_email = {}
-    dict_ssn = {}
     dict_name = {}
-
-    # #####################
-    # Emails
-    # #####################
-
-    # Checks the user input for any strings matching the regex pattern. 
-    email_matches = EMAIL_PATTERN.findall(user_input) + EMAIL_PATTERN_2.findall(user_input)
-    # Initializes an email counter
-    email_counter = 1
-    # Iterates through found emails
-    for e in email_matches:
-        # Maps the email to a fake email user#@email.com
-        dict_email[e] = f"user{email_counter}@email.com"
-        # Replaces the found emails with user#@email.com
-        user_input = user_input.replace(e, dict_email[e])
-        # Iterate the email counter by one
-        email_counter += 1
-    
-    # #####################
-    # SSNs
-    # #####################
-
-    # Checks the user input for any strings matching the regex pattern. 
-    ssn_matches = SSN_PATTERN_1.findall(user_input) + SSN_PATTERN_2.findall(user_input) + SSN_PATTERN_3.findall(user_input) + SSN_PATTERN_4.findall(user_input)
-    # Initialize an ssn counter. 
-    s_counter = 1
-    # For each match found.
-    for s in ssn_matches:
-        # Maps the ssn with format XXX-XX-100#
-        dict_ssn[s] = f"XXX-XX-{1000+s_counter:04d}"
-        # Replaces the found ssns with the XXX-XX-100#
-        user_input = user_input.replace(s, dict_ssn[s])
-        # Iterates the SSN counter
-        s_counter += 1
-
-    # #####################
-    # Names
-    # #####################
 
     # Load the English words list (it's a set for fast lookup)
     english_words = set(w.lower() for w in words.words())
@@ -104,7 +65,6 @@ def sanitize_input(user_input):
                 canditates_name.add(norm)
                 orig_map.setdefault(norm, []).append(ent.text)
 
-
     # For each subject found in the sub_toks
     for subj in sub_toks:
         if (
@@ -121,7 +81,7 @@ def sanitize_input(user_input):
                 orig_map.setdefault(norm, []).append(subj.text)
 
 
-    # fulter out names (ex. Susan Davis and Davis)
+    # filter out names (ex. Susan Davis and Davis)
     filtered = {name for name in canditates_name
                 if not any(is_token_suffix(name, other) for other in canditates_name) }
 
@@ -159,6 +119,75 @@ def sanitize_input(user_input):
         # Iterates the name counter
         n_counter = n_counter + 1
     print(dict_name)
+    return user_input, dict_name
+
+def sanitize_ssns(user_input):
+    dict_ssn = {}
+    # Checks the user input for any strings matching the regex pattern. 
+    ssn_matches = SSN_PATTERN_1.findall(user_input) + SSN_PATTERN_2.findall(user_input) + SSN_PATTERN_3.findall(user_input) + SSN_PATTERN_4.findall(user_input)
+    # Initialize an ssn counter. 
+    s_counter = 1
+    # For each match found.
+    for s in ssn_matches:
+        # Maps the ssn with format XXX-XX-100#
+        dict_ssn[s] = f"XXX-XX-{1000+s_counter:04d}"
+        # Replaces the found ssns with the XXX-XX-100#
+        user_input = user_input.replace(s, dict_ssn[s])
+        # Iterates the SSN counter
+        s_counter += 1
+    print(dict_ssn)
+    return dict_ssn
+
+def sanitize_emails(user_input):
+    dict_email = {}
+    # Checks the user input for any strings matching the regex pattern. 
+    email_matches = EMAIL_PATTERN.findall(user_input) + EMAIL_PATTERN_2.findall(user_input)
+    # Initializes an email counter
+    email_counter = 1
+    # Iterates through found emails
+    for e in email_matches:
+        # Maps the email to a fake email user#@email.com
+        dict_email[e] = f"user{email_counter}@email.com"
+        # Replaces the found emails with user#@email.com
+        user_input = user_input.replace(e, dict_email[e])
+        # Iterate the email counter by one
+        email_counter += 1
+    print(dict_email)
+    return dict_email
+'''
+This function is the primary sanitization function. 
+Parameters: 
+    - user_input : A string entered by the user. The prompt. 
+Outputs: 
+    - dict_email : a dictionary containing the found emails and replacement email
+    - dict_ssn : a dictionary containing the found SSNs and replacement SSN
+    - dict_name : a dictionary containing the found names and replacement names. 
+'''
+def sanitize_input(user_input): 
+
+
+    dict_email = {}
+    dict_ssn = {}
+    dict_name = {}
+
+    # #####################
+    # Emails
+    # #####################
+
+    dict_email = sanitize_emails(user_input)
+    
+    # #####################
+    # SSNs
+    # #####################
+
+    dict_ssns = sanitize_ssns(user_input)
+
+    # #####################
+    # Names
+    # #####################
+
+    user_input, dict_name = sanitize_names(user_input, dict_email)
+
     return user_input, dict_email, dict_ssn, dict_name
 
 
