@@ -80,7 +80,6 @@ def sanitize_names(user_input, dict_email):
                 canditates_name.add(norm)
                 orig_map.setdefault(norm, []).append(subj.text)
 
-
     # filter out names (ex. Susan Davis and Davis)
     filtered = {name for name in canditates_name
                 if not any(is_token_suffix(name, other) for other in canditates_name) }
@@ -93,7 +92,7 @@ def sanitize_names(user_input, dict_email):
 
     # Remove known False Positives
     cleaned_names = set()
-
+    
     for name in person_names:
         if name.lower() in  {"email", "volunteer"}:
             continue
@@ -107,10 +106,10 @@ def sanitize_names(user_input, dict_email):
     # Update person_names
     person_names = cleaned_names
 
-
     # Initialize a name counter
     n_counter = 1
-    for name in person_names:
+    # Makes it so the names are sorted by length with longest first. 
+    for name in sorted(person_names, key=len, reverse=True):
         # Maps the name to a dummy value = name#
         dict_name[name] = f"name{n_counter}"
         # Replaces the name with the dummy value in the string
@@ -120,7 +119,14 @@ def sanitize_names(user_input, dict_email):
         n_counter = n_counter + 1
     print(dict_name)
     return user_input, dict_name
-
+'''
+Sanitizes only the SSNs in the user prompt. 
+Parameters: 
+    - user_input : string containing the original prompt. 
+Returns: 
+    - dict_ssn : a dictionary containing found SSNs and the replacements
+    - user_input : string containing the original prompt and replacement SSNs. 
+'''
 def sanitize_ssns(user_input):
     dict_ssn = {}
     # Checks the user input for any strings matching the regex pattern. 
@@ -137,7 +143,14 @@ def sanitize_ssns(user_input):
         s_counter += 1
     print(dict_ssn)
     return user_input, dict_ssn
-
+'''
+Sanitizes only the emails in the user prompt. 
+Parameters: 
+    - user_input : string containing the original prompt. 
+Returns: 
+    - dict_email : a dictionary containing found emails and the replacements
+    - user_input : string containing the original prompt and replacemtn emails. 
+'''
 def sanitize_emails(user_input):
     dict_email = {}
     # Checks the user input for any strings matching the regex pattern. 
@@ -221,6 +234,6 @@ Fail cases found:
 
 def main(): 
     sanitize_input("Susan Davis (Email SDavis@gma.com, SSN 421-37-1396) recently got married.")
-
+    sanitize_input("James Heard (Email JAHE@gma.com, SSN 559-81-1301) recently got married. How can I congratulate him? I also heard that James has a friend coming over. I think their name was Thomas Conley. Also, James Smith was coming too. Bunch of James coming over, like James Avery. Hope it all goes well!")
 if __name__ == '__main__':
     main()
