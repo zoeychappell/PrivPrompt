@@ -117,6 +117,8 @@ class CLI:
                 print("\n" + "\033[35m" + "-"*40 + "\033[0m")
                 print(f"\033[35m[{self.chosen_llm.upper()}]\033[0m")
                 print(f"\033[34mYou entered:\033[0m {command}")
+                print(f"\033[34mSanitized prompt:\033[0m {sanitized_input}")
+
                 print(f"\033[34mLLM Response:\033[0m {response}")
                 print("\033[35m" + "-"*40 + "\033[0m\n")
 
