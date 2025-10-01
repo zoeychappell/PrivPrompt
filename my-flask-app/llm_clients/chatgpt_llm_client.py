@@ -20,7 +20,6 @@ def chatgpt_api():
         input="Write a one-sentence bedtime story about a unicorn."
     )
 
-    print(response.output_text)  
 
 def main():
     chatgpt_api()
