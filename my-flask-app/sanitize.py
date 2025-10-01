@@ -60,7 +60,7 @@ def sanitize_names(user_input, dict_email):
     orig_map = {}
     for ent in doc.ents:
         if ent.label_ == "PERSON":
-            norm = normalize(ent.text)
+            norm = normalize(ent.text).lower()
             if norm: 
                 canditates_name.add(norm)
                 orig_map.setdefault(norm, []).append(ent.text)
@@ -75,7 +75,7 @@ def sanitize_names(user_input, dict_email):
             and not EMAIL_PATTERN.match(subj.text)
             and not EMAIL_PATTERN_2.match(subj.text) 
         ):
-            norm = normalize(subj.text)
+            norm = normalize(subj.text).lower()
             if norm: 
                 canditates_name.add(norm)
                 orig_map.setdefault(norm, []).append(subj.text)
