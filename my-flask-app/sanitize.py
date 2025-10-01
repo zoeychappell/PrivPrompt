@@ -117,7 +117,6 @@ def sanitize_names(user_input, dict_email):
         user_input = re.sub(pattern, dict_name[name], user_input)
         # Iterates the name counter
         n_counter = n_counter + 1
-    print(dict_name)
     return user_input, dict_name
 '''
 Sanitizes only the SSNs in the user prompt. 
@@ -141,7 +140,6 @@ def sanitize_ssns(user_input):
         user_input = user_input.replace(s, dict_ssn[s])
         # Iterates the SSN counter
         s_counter += 1
-    print(dict_ssn)
     return user_input, dict_ssn
 '''
 Sanitizes only the emails in the user prompt. 
@@ -165,7 +163,6 @@ def sanitize_emails(user_input):
         user_input = user_input.replace(e, dict_email[e])
         # Iterate the email counter by one
         email_counter += 1
-    print(dict_email)
     return user_input, dict_email
 '''
 This function is the primary sanitization function. 
