@@ -28,7 +28,7 @@ DATE_PATTERN_2 = re.compile(r"\d{1}\/\d{1}\/\d{2}") # Matches for #/#/## ex. 1/3
 
 def normalize(string):
     string = unicodedata.normalize("NFKC", string)
-    return re.sub(r'^\W+|\W+$', '', string).strip()
+    return re.sub(r"[^a-zA-Z0-9\s',.]+", '', string).strip()
 
 def is_token_suffix(string_a, string_b):
     a_tokens = string_a.lower().split()
@@ -44,7 +44,7 @@ Returns:
     - user_input : string with the original prompt but no names. 
     - dict_name : dictionary of found names.'''
 def sanitize_names(user_input, dict_email):
-
+    
     dict_name = {}
 
     # Load the English words list (it's a set for fast lookup)
@@ -174,7 +174,7 @@ Outputs:
     - dict_name : a dictionary containing the found names and replacement names. 
 '''
 def sanitize_input(user_input): 
-
+    user_input = normalize(user_input)
 
     dict_email = {}
     dict_ssn = {}
@@ -230,7 +230,9 @@ Fail cases found:
 '''
 
 def main(): 
+    out = normalize("Omg, Jerome is a evil genius. He can hide his friend's name using dashes, like -Jerry! Dang, can't believe \Joshua and also /Jerma can hide in plain sight. Even -Thomas can be hidden like /Celia")
+    #print (out)
     #sanitize_input("Susan Davis (Email SDavis@gma.com, SSN 421-37-1396) recently got married.")
-    sanitize_input("James Heard (Email JAHE@gma.com, SSN 559-81-1301) recently got married. How can I congratulate him? I also heard that James has a friend coming over. I think their name was Thomas Conley. Also, James Smith was coming too. Bunch of James coming over, like James Avery. Hope it all goes well!")
+    #sanitize_input("James Heard (Email JAHE@gma.com, SSN 559-81-1301) recently got married. How can I congratulate him? I also heard that James has a friend coming over. I think their name was Thomas Conley. Also, James Smith was coming too. Bunch of James coming over, like James Avery. Hope it all goes well!")
 if __name__ == '__main__':
     main()
