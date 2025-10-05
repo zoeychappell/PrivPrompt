@@ -230,7 +230,7 @@ Fail cases found:
 '''
 
 def main(): 
-    sanitize_input("Susan Davis (Email SDavis@gma.com, SSN 421-37-1396) recently got married.")
+    #sanitize_input("Susan Davis (Email SDavis@gma.com, SSN 421-37-1396) recently got married.")
     sanitize_input("James Heard (Email JAHE@gma.com, SSN 559-81-1301) recently got married. How can I congratulate him? I also heard that James has a friend coming over. I think their name was Thomas Conley. Also, James Smith was coming too. Bunch of James coming over, like James Avery. Hope it all goes well!")
 if __name__ == '__main__':
     main()
