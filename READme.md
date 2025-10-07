@@ -21,24 +21,22 @@ By using dotenv, API keys can be set as an environment variable and not included
 
 # To use flask and run front end:
 
-    1. Open Terminal
-    2. Go to the location of the /my-flask-app
+1. Open Terminal
+2. Go to the location of the /my-flask-app
         cd /Users/adambraccia/Documents/GitHub/PrivPrompt/my-flask-app
-    3. Open virtual environment
+3. Open virtual environment
         python3 -m venv venv
         source venv/bin/activate
-    4. install flask and livereload and others
+4. install flask and livereload and others
         pip install flask flask-cors
         pip install livereload
         pip install spacy
         python -m spacy download en_core_web_sm
         pip install groq
         pip install python-dotenv
-
-
-    5. Run app.py
+5. Run app.py
         python app.py
-    5. Open in the browser the IP
+6. Open in the browser the IP
         http://127.0.0.1:5001
 
 # How to get a Groq API key
@@ -53,7 +51,7 @@ By using dotenv, API keys can be set as an environment variable and not included
 3. Make a new TRIAL KEY - NOT the production key
 4. Add the api key to your .env file by following the dotenv instructions.
 5. IMPORTANT: Make sure to follow the naming scheme 
-		COHERE_API_KEY=’<your key>’
+		COHERE_API_KEY=’your_key’
 
 # How to get a Google AI Stuido API Key
 1. Go to https://aistudio.google.com/prompts/new_chat and create an account. 
@@ -65,7 +63,7 @@ By using dotenv, API keys can be set as an environment variable and not included
 7. Name your key and select the appropriate project. 
 8. Add the API key to your .env file by following the dotenv instructions. 
 9. IMPORTANT: Make sure to follow the naming scheme
-    GEMINI_API_KEY='<your key>'
+    GEMINI_API_KEY='your_key'
 
 # How to get a Deepseek API Key
 Note:  This is not actually communicating with Deepseek but is going through OpenRouter. 
@@ -80,5 +78,5 @@ Note:  This is not actually communicating with Deepseek but is going through Ope
 8. Copy the api key
 9. Add the api key to your .env file by following the dotenv instructions.
     Make sure to follow the naming scheme 
-		DEEPSEEK_API_KEY=’<your key>’
+		DEEPSEEK_API_KEY=’your_key’
 
