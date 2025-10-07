@@ -4,8 +4,10 @@ from sanitize import sanitize_input
 from llm_clients.groq_llm_client import call_groq
 from llm_clients.cohere_llm_client import cohere
 from llm_clients.google_genai_llm_client import call_genai
+from llm_clients.deepseek_llm_client import call_deepseek
+from llm_clients.workers_ai_llm_client import call_workers_ai
 
-LIST_OF_LLMS = ["Llama", "Cohere", "Gemini"]
+LIST_OF_LLMS = ["Llama", "Cohere", "Gemini", "Deepseek", "Workers AI"]
 
 class CLI: 
     def __init__(self):
@@ -110,6 +112,10 @@ class CLI:
                     response = cohere(sanitized_input)
                 elif self.chosen_llm == "gemini":
                     response = call_genai(sanitized_input)
+                elif self.chosen_llm == "deepseek":
+                    response = call_deepseek(sanitized_input)
+                elif self.chosen_llm == 'workers ai':
+                    response = call_workers_ai(sanitized_input)
                 else: 
                     response = f"There was an error."
 
