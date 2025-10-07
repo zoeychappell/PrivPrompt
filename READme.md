@@ -67,3 +67,18 @@ By using dotenv, API keys can be set as an environment variable and not included
 9. IMPORTANT: Make sure to follow the naming scheme
     GEMINI_API_KEY='<your key>'
 
+# How to get a Deepseek API Key
+Note:  This is not actually communicating with Deepseek but is going through OpenRouter. 
+1. Go to https://openrouter.ai/models
+2. Find Deepseek V3.1 (Free). 
+    NOTE: it must be this specific version
+3. Select Deepseek and it will bring you to this page. 
+4. Scroll down until you find Create API Key. 
+5. Select it and it will bring you to this page. 
+6. Select Create API Key and follow the prompts. 
+7. Name the key and the other options are optional. 
+8. Copy the api key
+9. Add the api key to your .env file by following the dotenv instructions.
+    Make sure to follow the naming scheme 
+		DEEPSEEK_API_KEY=’<your key>’
+
