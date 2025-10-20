@@ -28,7 +28,7 @@ DATE_PATTERN_2 = re.compile(r"\d{1}\/\d{1}\/\d{2}") # Matches for #/#/## ex. 1/3
 
 def normalize(string):
     string = unicodedata.normalize("NFKC", string)
-    return re.sub(r"[^a-zA-Z0-9\s',.]+", '', string).strip()
+    return re.sub(r"[^a-zA-Z0-9\s',.@]+", '', string).strip()
 
 def is_token_suffix(string_a, string_b):
     a_tokens = string_a.lower().split()
