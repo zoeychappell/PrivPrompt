@@ -1,11 +1,10 @@
-sys
-os
-re
 openai
-groqgit
+groq
 cohere
 flask
+flask-cors
 livereload
 spacy
-nltk.corpus
+nltk
 google-genai
+python-dotenv

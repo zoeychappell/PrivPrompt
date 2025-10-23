@@ -28,7 +28,7 @@ DATE_PATTERN_2 = re.compile(r"\d{1}\/\d{1}\/\d{2}") # Matches for #/#/## ex. 1/3
 
 def normalize(string):
     string = unicodedata.normalize("NFKC", string)
-    return re.sub(r'^\W+|\W+$', '', string).strip()
+    return re.sub(r"[^a-zA-Z0-9\s',.@]+", '', string).strip()
 
 def is_token_suffix(string_a, string_b):
     a_tokens = string_a.lower().split()
@@ -44,13 +44,13 @@ Returns:
     - user_input : string with the original prompt but no names. 
     - dict_name : dictionary of found names.'''
 def sanitize_names(user_input, dict_email):
-
+    
     dict_name = {}
 
     # Load the English words list (it's a set for fast lookup)
     english_words = set(w.lower() for w in words.words())
     # Load a pre-trained English model (you might need to download it first: python -m spacy download en_core_web_sm)
-    nlp = spacy.load("en_core_web_sm")
+    nlp = spacy.load("en_core_web_lg")
     # Initialize the NLP
     doc = nlp(user_input)
     # Identify all subjects in the sentence
@@ -64,25 +64,30 @@ def sanitize_names(user_input, dict_email):
             if norm: 
                 canditates_name.add(norm)
                 orig_map.setdefault(norm, []).append(ent.text)
-
+    PRONOUNS = {
+        "i", "me", "my", "mine", "you", "your", "yours", "he", "him", "his",
+        "she", "her", "hers", "it", "its", "we", "us", "our", "ours",
+        "they", "them", "their", "theirs", "who", "whom"
+    }
     # For each subject found in the sub_toks
     for subj in sub_toks:
         if (
-            # Check that the word is not a normal english word
-            subj.text.lower() not in english_words
+            # Check that the word is not a normal english word and not a proper known
+            (subj.pos_ != "PROPN" or subj.text.lower() not in english_words)
             # Following three checks for email identification issue.
             and not subj.text in dict_email
             and not EMAIL_PATTERN.match(subj.text)
-            and not EMAIL_PATTERN_2.match(subj.text) 
+            and not EMAIL_PATTERN_2.match(subj.text)
+            and not subj.text in PRONOUNS
         ):
             norm = normalize(subj.text).lower()
             if norm: 
                 canditates_name.add(norm)
                 orig_map.setdefault(norm, []).append(subj.text)
-
-    # filter out names (ex. Susan Davis and Davis)
-    filtered = {name for name in canditates_name
-                if not any(is_token_suffix(name, other) for other in canditates_name) }
+    # Note - keeping for now because i might change back to the original (which is commented out.)
+    filtered = canditates_name
+    #filtered = {name for name in canditates_name
+             #   if not any(is_token_suffix(name, other) for other in canditates_name) }
 
     person_names = set()
     for norm in filtered:
@@ -174,7 +179,7 @@ Outputs:
     - dict_name : a dictionary containing the found names and replacement names. 
 '''
 def sanitize_input(user_input): 
-
+    user_input = normalize(user_input)
 
     dict_email = {}
     dict_ssn = {}
@@ -230,7 +235,14 @@ Fail cases found:
 '''
 
 def main(): 
+    # out = normalize("Omg, Jerome is a evil genius. He can hide his friend's name using dashes, like -Jerry! Dang, can't believe \Joshua and also /Jerma can hide in plain sight. Even -Thomas can be hidden like /Celia")
+    #print (out)
+    dict_email = {}
+    user_input = "James David and David James are bringing snacks to the party. James promised to bring chips, and David said he'd handle drinks."
+
+    user_input, dict_name = sanitize_names(user_input, dict_email)
+    print (user_input)
     #sanitize_input("Susan Davis (Email SDavis@gma.com, SSN 421-37-1396) recently got married.")
-    sanitize_input("James Heard (Email JAHE@gma.com, SSN 559-81-1301) recently got married. How can I congratulate him? I also heard that James has a friend coming over. I think their name was Thomas Conley. Also, James Smith was coming too. Bunch of James coming over, like James Avery. Hope it all goes well!")
+    #sanitize_input("James Heard (Email JAHE@gma.com, SSN 559-81-1301) recently got married. How can I congratulate him? I also heard that James has a friend coming over. I think their name was Thomas Conley. Also, James Smith was coming too. Bunch of James coming over, like James Avery. Hope it all goes well!")
 if __name__ == '__main__':
     main()
