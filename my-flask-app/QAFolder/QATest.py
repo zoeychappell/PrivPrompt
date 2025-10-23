@@ -1,4 +1,5 @@
 # pip install bert-score sentence-transformers textdistance rapidfuzz numpy
+# Requires app.py to have run the QA portion of the code first before running this code
 
 from sentence_transformers import SentenceTransformer, util, CrossEncoder
 import textdistance
