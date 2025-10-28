@@ -178,6 +178,16 @@ Outputs:
     - dict_ssn : a dictionary containing the found SSNs and replacement SSN
     - dict_name : a dictionary containing the found names and replacement names. 
 '''
+def fill_in_llm_response(response, dict_email, dict_ssn, dict_name):
+    for email, fake_email in dict_email.items(): 
+        response = response.replace(fake_email, email)
+    for name, fake_name in dict_name.items():
+        response = response.replace(fake_name, name)
+    for ssn, fake_ssn in dict_ssn.items(): 
+        response = response.replace(fake_ssn, ssn)
+
+    return response
+
 def sanitize_input(user_input): 
     user_input = normalize(user_input)
 
@@ -202,7 +212,6 @@ def sanitize_input(user_input):
     # #####################
 
     user_input, dict_name = sanitize_names(user_input, dict_email)
-
     return user_input, dict_email, dict_ssn, dict_name
 
 
