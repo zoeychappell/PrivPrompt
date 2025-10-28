@@ -124,8 +124,8 @@ class CLI:
                 print(f"\033[35m[{self.chosen_llm.upper()}]\033[0m")
                 print(f"\033[34mYou entered:\033[0m {command}")
                 print(f"\033[34mSanitized prompt:\033[0m {sanitized_input}")
-                print(f"\033[34mOriginal LLM response:\033[0m {filled_in_response}")
-                print(f"\033[34mFilled in LLM Response:\033[0m {response}")
+                print(f"\033[34mOriginal LLM response:\033[0m {response}")
+                print(f"\033[34mFilled in LLM Response:\033[0m {filled_in_response}")
                 print("\033[35m" + "-"*40 + "\033[0m\n")
 
         except KeyboardInterrupt: 
