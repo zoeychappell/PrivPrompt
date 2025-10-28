@@ -44,7 +44,7 @@ Returns:
     - user_input : string with the original prompt but no names. 
     - dict_name : dictionary of found names.'''
 def sanitize_names(user_input, dict_email):
-    
+    sanitized_user_input = user_input
     dict_name = {}
 
     # Load the English words list (it's a set for fast lookup)
@@ -119,10 +119,10 @@ def sanitize_names(user_input, dict_email):
         dict_name[name] = f"name{n_counter}"
         # Replaces the name with the dummy value in the string
         pattern = r"\b" + re.escape(name) + r"\b"
-        user_input = re.sub(pattern, dict_name[name], user_input)
+        sanitized_user_input = re.sub(pattern, dict_name[name], user_input)
         # Iterates the name counter
         n_counter = n_counter + 1
-    return user_input, dict_name
+    return sanitized_user_input, user_input, dict_name
 '''
 Sanitizes only the SSNs in the user prompt. 
 Parameters: 
@@ -133,6 +133,7 @@ Returns:
 '''
 def sanitize_ssns(user_input):
     dict_ssn = {}
+    sanitized_user_input = user_input
     # Checks the user input for any strings matching the regex pattern. 
     ssn_matches = SSN_PATTERN_1.findall(user_input) + SSN_PATTERN_2.findall(user_input) + SSN_PATTERN_3.findall(user_input) + SSN_PATTERN_4.findall(user_input)
     # Initialize an ssn counter. 
@@ -142,10 +143,10 @@ def sanitize_ssns(user_input):
         # Maps the ssn with format XXX-XX-100#
         dict_ssn[s] = f"XXX-XX-{1000+s_counter:04d}"
         # Replaces the found ssns with the XXX-XX-100#
-        user_input = user_input.replace(s, dict_ssn[s])
+        sanitized_user_input, user_input = user_input.replace(s, dict_ssn[s])
         # Iterates the SSN counter
         s_counter += 1
-    return user_input, dict_ssn
+    return sanitized_user_input, user_input, dict_ssn
 '''
 Sanitizes only the emails in the user prompt. 
 Parameters: 
@@ -155,6 +156,7 @@ Returns:
     - user_input : string containing the original prompt and replacemtn emails. 
 '''
 def sanitize_emails(user_input):
+    sanitized_user_input = user_input
     dict_email = {}
     # Checks the user input for any strings matching the regex pattern. 
     email_matches = EMAIL_PATTERN.findall(user_input) + EMAIL_PATTERN_2.findall(user_input)
@@ -165,10 +167,10 @@ def sanitize_emails(user_input):
         # Maps the email to a fake email user#@email.com
         dict_email[e] = f"user{email_counter}@email.com"
         # Replaces the found emails with user#@email.com
-        user_input = user_input.replace(e, dict_email[e])
+        sanitized_user_input = user_input.replace(e, dict_email[e])
         # Iterate the email counter by one
         email_counter += 1
-    return user_input, dict_email
+    return sanitized_user_input, user_input, dict_email
 '''
 This function is the primary sanitization function. 
 Parameters: 
@@ -199,20 +201,20 @@ def sanitize_input(user_input):
     # Emails
     # #####################
 
-    user_input, dict_email = sanitize_emails(user_input)
+    sanitized_email, raw_user_input, dict_email = sanitize_emails(user_input)
     
     # #####################
     # SSNs
     # #####################
 
-    user_input, dict_ssn = sanitize_ssns(user_input)
+    sanitize_ssn, raw_user_input, dict_ssn = sanitize_ssns(sanitized_email)
 
     # #####################
     # Names
     # #####################
 
-    user_input, dict_name = sanitize_names(user_input, dict_email)
-    return user_input, dict_email, dict_ssn, dict_name
+    sanitized_user_input, raw_user_input, dict_name = sanitize_names(sanitize_ssn, dict_email)
+    return sanitized_user_input, user_input, dict_email, dict_ssn, dict_name
 
 
 '''
