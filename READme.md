@@ -8,8 +8,11 @@ We are guided by Faculty advisor Yidan Hu.
 # Team Members
 Zoey Chappell, Adam Braccia, and Minn Myint
 
-# Download all dependencies
-1. run the command 'pip install -r requirements.txt'
+# Setup the environment
+1. Run the setup_environment.py program
+        This program will install all requirements, setup a virtual environment, create a .env file, and ask for the required API keys. 
+        We've still included the manual setps to setup the environment below. 
+
 
 # How to Set Up a dotenv environment 
 By using dotenv, API keys can be set as an environment variable and not included directly in the code. 
