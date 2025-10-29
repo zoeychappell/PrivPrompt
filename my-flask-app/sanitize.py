@@ -18,7 +18,8 @@ SSN_PATTERN_5  = re.compile(r"\d[0-9]{9}")
 DATE_PATTERN_1 = re.compile(r"\d{2}\/\d{2}\/\d{4}") # matches for ##/##/#### ex. 01/03/2024
 DATE_PATTERN_2 = re.compile(r"\d{1}\/\d{1}\/\d{2}") # Matches for #/#/## ex. 1/3/24
 
-   
+PHONE_PATTERN_1 = re.compile (r"^\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{4}$") # matches 1231231234
+PHONE_PATTERN_2 = re.compile(r"\+([1-9]\d{0,2})[-.\s]?\(?\d{1,3}\)?([-.\s]?\d{1,3}){2,3}") # matches phone numbers with extensions
     # TO DOs
     # Matches for #/#/#### ex. 1/3/2024
     # Matches for ##/#/#### ex. 01/3/2024
@@ -41,7 +42,8 @@ Parameters:
     - user_input : string containing the original prompt
     - dict_email : dictionary of found emails. 
 Returns: 
-    - user_input : string with the original prompt but no names. 
+    - sanitized_user_input : string containing the original prompt and replacement phone numbers. 
+    - user_input : string containing original user input
     - dict_name : dictionary of found names.'''
 def sanitize_names(user_input, dict_email):
     sanitized_user_input = user_input
@@ -129,7 +131,9 @@ Parameters:
     - user_input : string containing the original prompt. 
 Returns: 
     - dict_ssn : a dictionary containing found SSNs and the replacements
-    - user_input : string containing the original prompt and replacement SSNs. 
+    - sanitized_user_input : string containing the original prompt and replacement phone numbers. 
+    - user_input : string containing original user input
+
 '''
 def sanitize_ssns(user_input):
     dict_ssn = {}
@@ -153,7 +157,9 @@ Parameters:
     - user_input : string containing the original prompt. 
 Returns: 
     - dict_email : a dictionary containing found emails and the replacements
-    - user_input : string containing the original prompt and replacemtn emails. 
+    - sanitized_user_input : string containing the original prompt and replacement phone numbers. 
+    - user_input : string containing original user input
+
 '''
 def sanitize_emails(user_input):
     sanitized_user_input = user_input
@@ -171,31 +177,62 @@ def sanitize_emails(user_input):
         # Iterate the email counter by one
         email_counter += 1
     return sanitized_user_input, user_input, dict_email
+
 '''
-This function is the primary sanitization function. 
-Parameters: 
-    - user_input : A string entered by the user. The prompt. 
-Outputs: 
-    - dict_email : a dictionary containing the found emails and replacement email
-    - dict_ssn : a dictionary containing the found SSNs and replacement SSN
+Fills in the LLM response with the original data. 
+Paramters: 
+    - response : string containing the LLM response
+    - dict_email : a dictionary containing the found emails and replacement email.
+    - dict_ssn : a dictionary containing the found SSNs and replacement SSN.
     - dict_name : a dictionary containing the found names and replacement names. 
-'''
-def fill_in_llm_response(response, dict_email, dict_ssn, dict_name):
+    - dict_phone : a dictionary containing the found phone numbers and replacement phone numbers.
+Outputs: 
+    - response : String of LLM response with replacement values replaced with original values. '''
+def fill_in_llm_response(response, dict_email, dict_ssn, dict_name, dict_phone):
     for email, fake_email in dict_email.items(): 
         response = response.replace(fake_email, email)
     for name, fake_name in dict_name.items():
         response = response.replace(fake_name, name)
     for ssn, fake_ssn in dict_ssn.items(): 
         response = response.replace(fake_ssn, ssn)
-
+    for phone, fake_phone in dict_phone.items():
+        response = response.replace(fake_phone, phone)
     return response
 
+'''
+Sanitizes only the phone numbers in the user prompt. 
+Parameters: 
+    - user_input : string containing the original prompt. 
+Returns: 
+    - dict_phone : a dictionary containing found phone numbers and the replacements
+    - sanitized_user_input : string containing the original prompt and replacement phone numbers. 
+    - user_input : string containing original user input
+
+ '''
+def sanitize_phonenumbers(user_input):
+    dict_phone = {}
+    sanitized_user_input = user_input
+    phone_matches = PHONE_PATTERN_1.findall(user_input) + PHONE_PATTERN_2.findall(user_input)
+    phone_counter = 1
+    for phone in phone_matches: 
+        dict_phone[phone] = f"(111)111-111{phone_counter}"
+        sanitized_user_input = user_input.replace(phone, dict_phone[phone])
+        phone_counter = phone_counter + 1
+    return sanitized_user_input, user_input, dict_phone
+
+'''
+This function is the primary sanitization function. 
+Parameters: 
+    - user_input : A string entered by the user. The prompt. 
+Outputs: 
+    - dict_email : a dictionary containing the found emails and replacement email.
+    - dict_ssn : a dictionary containing the found SSNs and replacement SSN.
+    - dict_name : a dictionary containing the found names and replacement names. 
+    - dict_phone : a dictionary containing the found phone numbers and replacement phone numbers.
+'''
 def sanitize_input(user_input): 
     user_input = normalize(user_input)
 
-    dict_email = {}
-    dict_ssn = {}
-    dict_name = {}
 
     # #####################
     # Emails
@@ -207,14 +244,19 @@ def sanitize_input(user_input):
     # SSNs
     # #####################
 
-    sanitize_ssn, raw_user_input, dict_ssn = sanitize_ssns(sanitized_email)
+    sanitized_ssn, raw_user_input, dict_ssn = sanitize_ssns(sanitized_email)
 
     # #####################
     # Names
     # #####################
 
-    sanitized_user_input, raw_user_input, dict_name = sanitize_names(sanitize_ssn, dict_email)
-    return sanitized_user_input, user_input, dict_email, dict_ssn, dict_name
+    sanitized_names, raw_user_input, dict_name = sanitize_names(sanitized_ssn, dict_email)
+    # #####################
+    # Phones
+    # #####################
+    sanitized_user_input, raw_user_input, dict_phone = sanitize_phonenumbers(sanitized_names)
+
+    return sanitized_user_input, user_input, dict_email, dict_ssn, dict_name, dict_phone
 
 
 '''
