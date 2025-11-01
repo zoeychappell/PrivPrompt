@@ -42,6 +42,9 @@ By using dotenv, API keys can be set as an environment variable and not included
    pip install groq
    pip install python-dotenv
    pip install nltk
+   pip install google-genai
+   pip install cohere
+   pip install openai
 5. Run app.py
    python app.py
 6. Open in the browser the IP

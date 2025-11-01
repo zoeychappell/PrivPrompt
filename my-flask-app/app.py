@@ -2,13 +2,37 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from livereload import Server
 from sanitize import sanitize_input
-from llm_clients.groq_llm_client import call_groq
+
+# --- IMPORT ALL LLM CLIENTS ---
+from llm_clients.groq_llm_client import call_groq#from llm_clients.cohere_llm_client import cohere
+from llm_clients.google_genai_llm_client import call_genai
+from llm_clients.deepseek_llm_client import call_deepseek
+from llm_clients.workers_ai_llm_client import call_workers_ai
+
 # import json
 # import os
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # disable caching
 CORS(app)
+
+# --- 2. ADD HELPER FUNCTION TO ROUTE LLM CALLS ---
+def call_llm(prompt, llm_name):
+    """Calls the selected LLM based on the llm_name."""
+    if llm_name == "cohere":
+        return cohere(prompt)
+    elif llm_name == "gemini":
+        return call_genai(prompt)
+    elif llm_name == "deepseek":
+        return call_deepseek(prompt)
+    elif llm_name == "workers_ai":
+        return call_workers_ai(prompt)
+    elif llm_name == "llama":
+        # Default to llama (Groq)
+        return call_groq(prompt)
+    else:
+        # Fallback default
+        return call_groq(prompt)
 
 @app.route("/")
 def home():
@@ -18,15 +42,20 @@ def home():
 def handle_prompt():
     data = request.get_json()
     prompt = data.get("prompt", "")
+    
+    # --- GET THE CHOSEN LLM FROM THE REQUEST ---
+    llm_choice = data.get("llm", "llama") # Default to 'llama' if not provided
+
     if not prompt:
         return jsonify({"error": "No prompt provided"}), 400
 
-    # Sanitize
-    sanitized_prompt, dict_email, dict_ssn, dict_name = sanitize_input(prompt)
+    # --- FIX SANITIZE_INPUT UNPACKING (BUG FIX) ---
+    # sanitize_input returns 6 values, added `_` for unused 'user_input' and 'dict_phone'
+    sanitized_prompt, _, dict_email, dict_ssn, dict_name, dict_phone = sanitize_input(prompt)
 
-    # AI calls
-    ai_response_original = call_groq(prompt)
-    ai_response_sanitized = call_groq(sanitized_prompt)
+    # -- USE HELPER FUNCTION FOR AI CALLS ---
+    ai_response_original = call_llm(prompt, llm_choice)
+    ai_response_sanitized = call_llm(sanitized_prompt, llm_choice)
 
 
     # # UNCOMMENT CODE FOR QA TESTING
@@ -81,12 +110,26 @@ def handle_prompt():
     #     }, f, indent=2)
 
 
+    # return jsonify({
+    #     "result": sanitized_prompt,
+    #     "detected": {
+    #         "emails": dict_email,
+    #         "ssns": dict_ssn,
+    #         "names": dict_name
+    #     },
+    #     "ai_original": ai_response_original,
+    #     "ai_sanitized": ai_response_sanitized
+    # })
+
+    # --- UPDATE JSON RESPONSE  ---
+    # Added dict_phone to the detected response
     return jsonify({
         "result": sanitized_prompt,
         "detected": {
             "emails": dict_email,
             "ssns": dict_ssn,
-            "names": dict_name
+            "names": dict_name,
+            "phones": dict_phone  # Added this
         },
         "ai_original": ai_response_original,
         "ai_sanitized": ai_response_sanitized

@@ -8,32 +8,23 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='style.css') }}"
     />
-  </head>
-  <body>
-    <div class="container">
-      <h1>PrivPrompt</h1>
-
-      <!-- Input Box -->
-      <style>
+    <style>
       .input-box {
         display: flex;
-        gap: 0.5rem;           /* space between textarea and button */
+        gap: 0.5rem; /* space between textarea and button */
       }
 
       #promptInput {
-        /* Make the textarea look like the original input */
-        font-family: 'Roboto', sans-serif;
+        font-family: "Roboto", sans-serif;
         font-size: 20px;
         line-height: 1.2;
         padding: 0.4em 0.6em;
         border: 1px solid #ccc;
         border-radius: 4px;
         box-sizing: border-box;
-
-        /* Auto-resize behaviour */
         width: 100%;
-        overflow: hidden;      /* hide scrollbar */
-        resize: none;          /* prevent manual dragging */
+        overflow: hidden; /* hide scrollbar */
+        resize: none; /* prevent manual dragging */
       }
 
       #submitBtn {
@@ -41,7 +32,29 @@
         font-size: 1rem;
         cursor: pointer;
       }
-      </style>
+    </style>
+  </head>
+
+  <body>
+    <div class="banner">
+      <img
+        src="{{ url_for('static', filename='Logo-PrivPrompt.webp') }}"
+        alt="PrivPrompt Logo"
+        class="banner-logo"
+      />
+    </div>
+
+    <div class="container">
+      <div class="llm-selector-box">
+        <label for="llmSelector">Select AI Model:</label>
+        <select id="llmSelector">
+          <option value="llama">Llama (Groq)</option>
+          <option value="deepseek">Deepseek</option>
+          <option value="cohere">Cohere</option>
+          <option value="gemini">Gemini</option>
+          <option value="workers_ai">Workers AI</option>
+        </select>
+      </div>
 
       <div class="input-box">
         <textarea
@@ -53,38 +66,33 @@
       </div>
 
       <script>
-      const ta = document.getElementById('promptInput');
-      ta.addEventListener('input', function () {
-        this.style.height = 'auto';                 // shrink if needed
-        this.style.height = this.scrollHeight + 'px';// grow to fit content
-      });
+        const ta = document.getElementById("promptInput");
+        ta.addEventListener("input", function () {
+          this.style.height = "auto"; // shrink if needed
+          this.style.height = this.scrollHeight + "px"; // grow to fit content
+        });
       </script>
 
-      <!-- Original Prompt -->
       <div class="box">
         <h2>Original Prompt</h2>
         <pre id="originalPrompt"></pre>
       </div>
 
-      <!-- Detected Sensitive Info -->
       <div class="box">
         <h2>Detected Sensitive Info</h2>
         <pre id="detected"></pre>
       </div>
 
-      <!-- Sanitized Prompt -->
       <div class="box">
         <h2>Sanitized Prompt</h2>
         <pre id="sanitizedPrompt"></pre>
       </div>
 
-      <!-- AI Response Original -->
       <div class="box">
         <h2>AI Response (Original Prompt)</h2>
         <pre id="aiResponseOriginal"></pre>
       </div>
 
-      <!-- AI Response Sanitized -->
       <div class="box">
         <h2>AI Response (Sanitized Prompt)</h2>
         <pre id="aiResponseSanitized"></pre>
