@@ -20,7 +20,7 @@ def call_deepseek(message):
     )
     completion = client.chat.completions.create(
 
-    model="deepseek/deepseek-chat-v3.1:free",
+    model="tngtech/deepseek-r1t-chimera:free",
     messages=[
         {
         "role": "user",
