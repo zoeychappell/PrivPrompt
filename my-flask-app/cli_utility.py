@@ -103,27 +103,27 @@ class CLI:
                     self.show_help()
                     continue
 
-                sanitized_input, dict_email, dict_ssn, dict_name = sanitize_input(command)
+                sanitized_user_input, user_input, dict_email, dict_ssn, dict_name, dict_phone = sanitize_input(command)
                 response = "No response"
                 # === Send to LLM ===
                 if self.chosen_llm == "llama":
-                    response = call_groq(sanitized_input)   
+                    response = call_groq(sanitized_user_input)   
                 elif self.chosen_llm == "cohere":
-                    response = cohere(sanitized_input)
+                    response = cohere(sanitized_user_input)
                 elif self.chosen_llm == "gemini":
-                    response = call_genai(sanitized_input)
+                    response = call_genai(sanitized_user_input)
                 elif self.chosen_llm == "deepseek":
-                    response = call_deepseek(sanitized_input)
+                    response = call_deepseek(sanitized_user_input)
                 elif self.chosen_llm == 'workers ai':
-                    response = call_workers_ai(sanitized_input)
+                    response = call_workers_ai(sanitized_user_input)
                 else: 
                     response = f"There was an error."
 
-                filled_in_response = fill_in_llm_response(response, dict_email, dict_ssn, dict_name)
+                filled_in_response = fill_in_llm_response(response, dict_email, dict_ssn, dict_name, dict_phone)
                 print("\n" + "\033[35m" + "-"*40 + "\033[0m")
                 print(f"\033[35m[{self.chosen_llm.upper()}]\033[0m")
                 print(f"\033[34mYou entered:\033[0m {command}")
-                print(f"\033[34mSanitized prompt:\033[0m {sanitized_input}")
+                print(f"\033[34mSanitized prompt:\033[0m {sanitized_user_input}")
                 print(f"\033[34mOriginal LLM response:\033[0m {response}")
                 print(f"\033[34mFilled in LLM Response:\033[0m {filled_in_response}")
                 print("\033[35m" + "-"*40 + "\033[0m\n")
