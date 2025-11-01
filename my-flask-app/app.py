@@ -4,7 +4,8 @@ from livereload import Server
 from sanitize import sanitize_input
 
 # --- IMPORT ALL LLM CLIENTS ---
-from llm_clients.groq_llm_client import call_groq#from llm_clients.cohere_llm_client import cohere
+from llm_clients.groq_llm_client import call_groq
+from llm_clients.cohere_llm_client import cohere
 from llm_clients.google_genai_llm_client import call_genai
 from llm_clients.deepseek_llm_client import call_deepseek
 from llm_clients.workers_ai_llm_client import call_workers_ai
