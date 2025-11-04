@@ -39,14 +39,16 @@ with open("text2.txt", encoding="utf-8") as f:
 PII = {
     "emails": data["emails"],
     "ssns":   data["ssns"],
-    "names":  data["names"]
+    "names":  data["names"],
+    "phones": data["phones"]
 }
 # If you also have the sanitized placeholders you use (e.g., "name1", "user1@email.com"),
 # add them here to prevent them from affecting similarity:
 SAN_PLACEHOLDERS = {
     "names": [r"name\d+"],
     "emails": [r"user\d+@email\.com"],
-    "ssns": [r"xxx-xx-\d{4}"]
+    "ssns": [r"xxx-xx-\d{4}"],
+    "phones": [r"xxx-xxx-\d{4}"]
 }
 
 # ================== MODELS (unchanged) ==================
@@ -62,17 +64,19 @@ def safe_regex_escape_list(items):
 def canonicalize_text(t: str,
                       pii: dict,
                       san_placeholders: dict,
-                      tags=("NAME", "EMAIL", "SSN")) -> str:
+                      tags=("NAME", "EMAIL", "SSN", "PHONE")) -> str:
     out = t
 
     # Build patterns once
     name_patterns  = safe_regex_escape_list(pii.get("names", [])) + safe_regex_escape_list(san_placeholders.get("names", []))
     email_patterns = safe_regex_escape_list(pii.get("emails", [])) + safe_regex_escape_list(san_placeholders.get("emails", []))
     ssn_patterns   = safe_regex_escape_list(pii.get("ssns", [])) + safe_regex_escape_list(san_placeholders.get("ssns", []))
+    phone_patterns = safe_regex_escape_list(pii.get("phones", [])) + safe_regex_escape_list(san_placeholders.get("phones", []))
 
     # Also catch generic shapes in case lists miss something (optional; comment out if you don't want heuristics)
     email_patterns += [r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"]
     ssn_patterns   += [r"\b\d{3}-\d{2}-\d{4}\b"]
+    phone_patterns += [r"\b\d{3}-\d{3}-\d{4}\b"]
     # For names, if you don't want heuristics, rely only on your list.
 
     # Replace occurrences (case-insensitive)
@@ -82,6 +86,8 @@ def canonicalize_text(t: str,
         out = re.sub(r"(?i)(" + "|".join(email_patterns) + r")", f"<{tags[1]}>", out)
     if ssn_patterns:
         out = re.sub(r"(?i)(" + "|".join(ssn_patterns) + r")", f"<{tags[2]}>", out)
+    if phone_patterns:
+        out = re.sub(r"(?i)(" + "|".join(phone_patterns) + r")", f"<{tags[3]}>", out)
 
     return out
 
@@ -156,6 +162,7 @@ print(f"Meaning preserved outside PII (non-PII ensemble)?   {'YES' if ensemble_s
 # Prepare all scores you might want to analyze later
 row = {
     "timestamp": datetime.now().isoformat(timespec="seconds"),
+    "LLM": data["llm_choice"],
     "sbert_cos": sbert_cos,
     "ce_score": ce_score,
     "bert_f1": bert_f1,
@@ -176,6 +183,7 @@ row = {
 # Prepare subset of the most reliable scores
 row_lite = {
     "timestamp": row["timestamp"],
+    "LLM": data["llm_choice"],
     "sbert_cos": sbert_cos,
     "bert_f1": bert_f1,
     "ensemble_semantic": ensemble_semantic,
