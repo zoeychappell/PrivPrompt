@@ -6,6 +6,8 @@ import spacy
 from nltk.corpus import words
 import unicodedata
 
+# ---------------- REGEX DEFINITIONS ----------------
+
 EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}") # Matches email addresses 
 EMAIL_PATTERN_2 = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\,[a-zA-Z]{2,}") # Matches email addresses with comma typo
 
@@ -13,12 +15,12 @@ SSN_PATTERN_1 = re.compile(r"\d{3}-\d{2}-\d{4}") # Matches format ###-##-####
 SSN_PATTERN_2 = re.compile(r"\d{3} \d{2} \d{4}") # Matches format ### ## ####
 SSN_PATTERN_3 = re.compile(r"\d{3} \d{2}-\d{4}") # Matches format ### ##-####
 SSN_PATTERN_4 = re.compile(r"\d{3}-\d{2} \d{4}") # Matches format ###-## ####
-SSN_PATTERN_5  = re.compile(r"\d[0-9]{9}")
+SSN_PATTERN_5  = re.compile(r"\d{9}") # Matches for #########
 
 DATE_PATTERN_1 = re.compile(r"\d{2}\/\d{2}\/\d{4}") # matches for ##/##/#### ex. 01/03/2024
 DATE_PATTERN_2 = re.compile(r"\d{1}\/\d{1}\/\d{2}") # Matches for #/#/## ex. 1/3/24
 
-PHONE_PATTERN_1 = re.compile (r"^\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{4}$") # matches 1231231234
+PHONE_PATTERN_1 = re.compile (r"\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{4}") # matches 1231231234
 PHONE_PATTERN_2 = re.compile(r"\+([1-9]\d{0,2})[-.\s]?\(?\d{1,3}\)?([-.\s]?\d{1,3}){2,3}") # matches phone numbers with extensions
     # TO DOs
     # Matches for #/#/#### ex. 1/3/2024
@@ -26,7 +28,60 @@ PHONE_PATTERN_2 = re.compile(r"\+([1-9]\d{0,2})[-.\s]?\(?\d{1,3}\)?([-.\s]?\d{1,
     # Matches for 
     # do boht month/day/year and day/month/year
 
+# ---------------- Global Parameters ----------------
+NLP = None
+ENGLISH_WORDS = None
+'''
+This function will lacy load spaCy models for use in name sanitization. 
+Parameters: 
+    - None
+Returns: 
+    - NLP 
+'''
+def get_nlp():
+    # Tells the function that NLP is a global variable, not function scope variable
+    global NLP
+    # If NLP is none
+    if NLP is None: 
+        # Try to download spaCy large model
+        try: 
+            NLP = spacy.load("en_core_web_lg")
+        # If error, try and download spaCy small model
+        except OSError:
+            NLP = spacy.load("en_core_web_sm")
+    return NLP
+'''
+This function will lacy load NLTK words for use in name sanitization. 
+Parameters: 
+    - None
+Returns: 
+    - ENGGLISH_WORDS 
+'''
+def get_english_words():
+    # Establishes the scope of ENGLISH WORDS
+    global ENGLISH_WORDS
+    if ENGLISH_WORDS is None: 
+        try:
+            ENGLISH_WORDS = set(w.lower() for w in words.words())
+        # Catches if NLTK words is not downloaded correctly and generates an error
+        except LookupError:
+            raise RuntimeError(
+                "❌ NLTK English word list not found. Please run:\n"
+                "    >>> import nltk\n"
+                "    >>> nltk.download('words')\n"
+                "and then restart your application.")
+        # Catch all for if errors appear
+        except Exception as e: 
+            raise RuntimeError(f"Unexpected error loading NLTK words: {e}")
+    return ENGLISH_WORDS
 
+'''
+Function to remove strange characters, whitespace, etc in string. 
+Parameters: 
+    - string : the string with potentially weird characters
+Returns: 
+    - string : the string with removed weird characters
+'''
 def normalize(string):
     string = unicodedata.normalize("NFKC", string)
     return re.sub(r"[^a-zA-Z0-9\s',.@]+", '', string).strip()
@@ -48,11 +103,12 @@ Returns:
 def sanitize_names(user_input, dict_email):
     sanitized_user_input = user_input
     dict_name = {}
-
-    # Load the English words list (it's a set for fast lookup)
-    english_words = set(w.lower() for w in words.words())
     # Load a pre-trained English model (you might need to download it first: python -m spacy download en_core_web_sm)
-    nlp = spacy.load("en_core_web_lg")
+
+    nlp = get_nlp()
+    # Load the English words list (it's a set for fast lookup)
+
+    english_words = get_english_words()  
     # Initialize the NLP
     doc = nlp(user_input)
     # Identify all subjects in the sentence
@@ -173,7 +229,7 @@ def sanitize_emails(user_input):
         # Maps the email to a fake email user#@email.com
         dict_email[e] = f"user{email_counter}@email.com"
         # Replaces the found emails with user#@email.com
-        sanitized_user_input = user_input.replace(e, dict_email[e])
+        sanitized_user_input = sanitized_user_input.replace(e, dict_email[e])
         # Iterate the email counter by one
         email_counter += 1
     return sanitized_user_input, user_input, dict_email
