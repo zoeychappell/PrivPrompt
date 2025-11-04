@@ -121,7 +121,7 @@ def sanitize_names(user_input, dict_email):
         dict_name[name] = f"name{n_counter}"
         # Replaces the name with the dummy value in the string
         pattern = r"\b" + re.escape(name) + r"\b"
-        sanitized_user_input = re.sub(pattern, dict_name[name], user_input)
+        sanitized_user_input = re.sub(pattern, dict_name[name], sanitized_user_input)
         # Iterates the name counter
         n_counter = n_counter + 1
     return sanitized_user_input, user_input, dict_name
@@ -286,7 +286,7 @@ Fail cases found:
     Chinese names normally succeed but occasionally fail
         Lui Fang
 '''
-
+'''
 def main(): 
     # out = normalize("Omg, Jerome is a evil genius. He can hide his friend's name using dashes, like -Jerry! Dang, can't believe \Joshua and also /Jerma can hide in plain sight. Even -Thomas can be hidden like /Celia")
     #print (out)
@@ -299,3 +299,4 @@ def main():
     #sanitize_input("James Heard (Email JAHE@gma.com, SSN 559-81-1301) recently got married. How can I congratulate him? I also heard that James has a friend coming over. I think their name was Thomas Conley. Also, James Smith was coming too. Bunch of James coming over, like James Avery. Hope it all goes well!")
 if __name__ == '__main__':
     main()
+'''
