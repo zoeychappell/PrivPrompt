@@ -84,12 +84,16 @@ Returns:
 '''
 def normalize(string):
     string = unicodedata.normalize("NFKC", string)
-    return re.sub(r"[^a-zA-Z0-9\s',.@]+", '', string).strip()
+    return re.sub(r"[^\w\s',.@]", '', string, flags=re.UNICODE).strip()
+
+
 
 def is_token_suffix(string_a, string_b):
     a_tokens = string_a.lower().split()
     b_tokens = string_b.lower().split()
     return len(a_tokens) < len(b_tokens) and a_tokens == b_tokens[-len(a_tokens):]
+
+
 '''
 This function is responsible for only sanitizing names. It is called
 in sanitize_input()
@@ -203,7 +207,7 @@ def sanitize_ssns(user_input):
         # Maps the ssn with format XXX-XX-100#
         dict_ssn[s] = f"XXX-XX-{1000+s_counter:04d}"
         # Replaces the found ssns with the XXX-XX-100#
-        sanitized_user_input, user_input = user_input.replace(s, dict_ssn[s])
+        sanitized_user_input = sanitized_user_input.replace(s, dict_ssn[s])
         # Iterates the SSN counter
         s_counter += 1
     return sanitized_user_input, user_input, dict_ssn
@@ -317,21 +321,12 @@ def sanitize_input(user_input):
 
 '''
 Fail cases found: 
-    O'Connor, O'Malley fails
-    - o'malley works?
-        omalley works
     
-    - fails with single names too
 
     have an issue with not separating names out
     {"george O'malley george omalley": 'name1'}
     {'zoey adam kirby riley caitlin maleah': 'name1'}
 
-
-    'XXX-XX-1004': 'name11'}
-
-    Russian names fail: 
-        Dmitry Иванов
 
     French names fail
         Léon Dupont
