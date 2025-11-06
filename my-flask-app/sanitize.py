@@ -161,7 +161,7 @@ def sanitize_names(user_input, dict_email):
     cleaned_names = set()
     
     for name in person_names:
-        if name.lower() in  {"email", "volunteer"}:
+        if name.lower() in  {"email", "volunteer", "name"}:
             continue
         if EMAIL_PATTERN.match(name.lower()):
             continue
@@ -249,12 +249,19 @@ Paramters:
 Outputs: 
     - response : String of LLM response with replacement values replaced with original values. '''
 def fill_in_llm_response(response, dict_email, dict_ssn, dict_name, dict_phone):
+    # Replaces fake emails with the given email
     for email, fake_email in dict_email.items(): 
         response = response.replace(fake_email, email)
+    # Replaces fake names with the given names
     for name, fake_name in dict_name.items():
+        # checks for exact matches
         response = response.replace(fake_name, name)
+        # Checks for capitlized variant. 
+        response = response.replace(str.capitalize(fake_name), str.capitalize(name))
+    # Replaces fake SSNs with the given SSNs
     for ssn, fake_ssn in dict_ssn.items(): 
         response = response.replace(fake_ssn, ssn)
+    # Replaces fake phone numbers with the given phone numbers
     for phone, fake_phone in dict_phone.items():
         response = response.replace(fake_phone, phone)
     return response
@@ -270,12 +277,18 @@ Returns:
 
  '''
 def sanitize_phonenumbers(user_input):
+    # Initialize a dictionary for found and replacement numbers
     dict_phone = {}
+    # Rename variable
     sanitized_user_input = user_input
+    # Search for phone numbers that match the REGEX patterns
     phone_matches = PHONE_PATTERN_1.findall(user_input) + PHONE_PATTERN_2.findall(user_input)
     phone_counter = 1
+    # Iterate through matches
     for phone in phone_matches: 
+        # Replaces matches with a fake number
         dict_phone[phone] = f"(111)111-111{phone_counter}"
+        # Rewrites sanitized input with the replacement string
         sanitized_user_input = user_input.replace(phone, dict_phone[phone])
         phone_counter = phone_counter + 1
     return sanitized_user_input, user_input, dict_phone
@@ -311,6 +324,7 @@ def sanitize_input(user_input):
     # #####################
 
     sanitized_names, raw_user_input, dict_name = sanitize_names(sanitized_ssn, dict_email)
+    
     # #####################
     # Phones
     # #####################
