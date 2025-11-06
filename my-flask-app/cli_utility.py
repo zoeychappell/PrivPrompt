@@ -6,8 +6,9 @@ from llm_clients.cohere_llm_client import cohere
 from llm_clients.google_genai_llm_client import call_genai
 from llm_clients.deepseek_llm_client import call_deepseek
 from llm_clients.workers_ai_llm_client import call_workers_ai
+from llm_clients.mistral_llm_client import call_mistral
 
-LIST_OF_LLMS = ["Llama", "Cohere", "Gemini", "Deepseek", "Workers AI"]
+LIST_OF_LLMS = ["Llama", "Cohere", "Gemini", "Deepseek", "Workers AI", "Mistral"]
 
 class CLI: 
     def __init__(self):
@@ -137,17 +138,24 @@ class CLI:
                 response = "No response"
                 # === Send to LLM ===
                 llm_name = self.chosen_llm.lower()
-
+                # Calls Llama
                 if llm_name == "llama":
-                    response = call_groq(sanitized_user_input)   
+                    response = call_groq(sanitized_user_input)
+                # Calls Cohere   
                 elif llm_name == "cohere":
                     response = cohere(sanitized_user_input)
+                # Calls Gemini
                 elif llm_name == "gemini":
                     response = call_genai(sanitized_user_input)
+                # Calls Deepseek
                 elif llm_name == "deepseek":
                     response = call_deepseek(sanitized_user_input)
+                # Call Workers AI
                 elif llm_name == 'workers ai':
                     response = call_workers_ai(sanitized_user_input)
+                # Calls Mistral
+                elif llm_name == 'mistral':
+                    response = call_mistral(sanitized_user_input)
                 else: 
                     response = f"There was an error."
 
