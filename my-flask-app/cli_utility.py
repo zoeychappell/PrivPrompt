@@ -23,7 +23,8 @@ class CLI:
         # By using sys.stdin.read(), the program can accept multiple lines of input
         print("\033[1;36mPlease type your message. \033[0m \n" \
         "\033[36mType \033[33m'Done'\033[0m \033[36m on a new line to finish.\n" \
-        "Type \033[33m'Exit Program'\033[0m \033[36mor \033[33mCTRL-C\033[0m \033[36m to exit the program.\033[0m")
+        "Type \033[33m'Exit Program'\033[0m \033[36mor \033[33mCTRL-C\033[0m \033[36m to exit the program.\033[0m\n" \
+        "\033[36mType\033[33m 'New LLM'\033[0m\033[36m to select a new LLM. \033[0m")
         lines = []
         # Iterates through each line the user enteres.
         for line in sys.stdin:
@@ -51,6 +52,7 @@ class CLI:
         if not user_text:
             print("\033[1;31m[!] You entered an empty message. Please type something before 'done'.\033[0m\n")
             return self.clean_input()  # re-prompt the user safely
+        
         # Verifies that all new lines are removed and trims whitespace
         cleaned_user_input = user_text.replace("\n", "").replace("\r", "")
         # Return the cleaned input and trims whitespace.
