@@ -94,3 +94,43 @@ Note: This is not actually communicating with Deepseek but is going through Open
 9. Add the api key to your .env file by following the dotenv instructions.
    Make sure to follow the naming scheme
    DEEPSEEK_API_KEY=’your_key’
+
+# How to get a Workers AI API Key and Workers AI Account ID
+1. Sign up for an account by navigating here. https://dash.cloudflare.com/sign-up/workers-and-pages
+2. Go to the Workers AI page - https://dash.cloudflare.com/?to=/:account/ai/workers-ai
+3. Select REST API
+4. Copy the Account ID
+
+   Add a line to your .env file 
+      WORKERS_ACCOUNT_ID=’<yourid>’
+5. Select “Create a Workers AI API Token”
+6. Review the prefilled information
+7. Select Create API Token
+8. Select Copy API Token
+   Add a value to your .env file
+   WORKERS_API_KEY=’yourkey’
+
+# How to get a Mistral API Key
+1. Navigate to https://v2.auth.mistral.ai/login?flow=4295c612-12e7-4aa7-8126-8805fb9cd009 and make an account
+2. Create a Team - this can just be a dummy value
+3. Navigate to API keys
+4. Choose a plan. 
+5. Choose the Experiement plan
+   Follow the steps (requires phone number verification)
+6. Select API Keys
+7. Create New API Key
+8. COPY THE API KEY
+   Add a value to your .env file
+   MISTRAL_API_KEY=’yourkey’
+
+# How to get a Cerebras API Key
+1. Navigate to https://cloud.cerebras.ai/
+2. Create an account and follow the prompts. 
+3. Hit Continue. Scroll and Select Free
+4. Copy the API key. 
+5. Add it to your .env file 
+   CEREBRAS_API_KEY=’<your_api_key>’
+
+
+
+
