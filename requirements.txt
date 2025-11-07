@@ -9,3 +9,4 @@ nltk
 google-genai
 python-dotenv
 mistralai
+cerebras
