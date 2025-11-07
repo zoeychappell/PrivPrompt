@@ -7,8 +7,9 @@ from llm_clients.google_genai_llm_client import call_genai
 from llm_clients.deepseek_llm_client import call_deepseek
 from llm_clients.workers_ai_llm_client import call_workers_ai
 from llm_clients.mistral_llm_client import call_mistral
+from llm_clients.cerebras_llm_client import call_cerebras
 
-LIST_OF_LLMS = ["Llama", "Cohere", "Gemini", "Deepseek", "Workers AI", "Mistral"]
+LIST_OF_LLMS = ["Llama", "Cohere", "Gemini", "Deepseek", "Workers AI", "Mistral", "Cerebras"]
 
 class CLI: 
     def __init__(self):
@@ -156,6 +157,9 @@ class CLI:
                 # Calls Mistral
                 elif llm_name == 'mistral':
                     response = call_mistral(sanitized_user_input)
+                # Call Cerebras
+                elif llm_name == "cerebras":
+                    response = call_cerebras(sanitized_user_input)
                 else: 
                     response = f"There was an error."
 
