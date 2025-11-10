@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from livereload import Server
-from sanitize import sanitize_input
+from sanitize import fill_in_llm_response, sanitize_input
 
 # --- IMPORT ALL LLM CLIENTS ---
 from llm_clients.groq_llm_client import call_groq
@@ -20,6 +20,7 @@ CORS(app)
 # --- 2. ADD HELPER FUNCTION TO ROUTE LLM CALLS ---
 def call_llm(prompt, llm_name):
     """Calls the selected LLM based on the llm_name."""
+    #fill_in_llm_response(response, dict_email, dict_ssn, dict_name, dict_phone)
     if llm_name == "cohere":
         return cohere(prompt)
     elif llm_name == "gemini":
@@ -51,12 +52,23 @@ def handle_prompt():
         return jsonify({"error": "No prompt provided"}), 400
 
     # --- FIX SANITIZE_INPUT UNPACKING (BUG FIX) ---
-    # sanitize_input returns 6 values, added `_` for unused 'user_input' and 'dict_phone'
+    # sanitize_input returns 6 values, added `_` for unused 'user_input'
     sanitized_prompt, _, dict_email, dict_ssn, dict_name, dict_phone = sanitize_input(prompt)
 
     # -- USE HELPER FUNCTION FOR AI CALLS ---
     ai_response_original = call_llm(prompt, llm_choice)
-    ai_response_sanitized = call_llm(sanitized_prompt, llm_choice)
+    
+    # 1. Get the raw sanitized response
+    raw_sanitized_response = call_llm(sanitized_prompt, llm_choice)
+
+    # 2. NEW STEP: Fill the response back in using your function
+    ai_response_sanitized_filled = fill_in_llm_response(
+        raw_sanitized_response, 
+        dict_email, 
+        dict_ssn, 
+        dict_name, 
+        dict_phone
+    )
 
 
     # # UNCOMMENT CODE FOR QA TESTING
@@ -86,19 +98,18 @@ def handle_prompt():
     #             with open(path, "w", encoding="utf-8") as f:
     #                 json.dump(default_content, f, indent=2)
     #         else:
-    #             with open(path, "w", encoding="utf-8") as f:
-    #                 f.write("")
+    ...
 
     # # Appends both responses to textresponse.txt with 5 newlines between (empty file once in a while)
     # with open("./QAFolder/textresponse.txt", "a", encoding="utf-8") as f:
-    #     f.write(ai_response_original + "\n" * 5 + ai_response_sanitized + "\n" * 5)
+    #     f.write(ai_response_original + "\n" * 5 + ai_response_sanitized_filled + "\n" * 5) # <-- MODIFIED
 
     # # Writes each response to its own file (overwriting existing content)
     # with open("./QAFolder/text1.txt", "w", encoding="utf-8") as f1:
     #     f1.write(ai_response_original)
 
     # with open("./QAFolder/text2.txt", "w", encoding="utf-8") as f2:
-    #     f2.write(ai_response_sanitized)
+    #     f2.write(ai_response_sanitized_filled) # <-- MODIFIED
 
     # # Writes the dictionaries of collected PII into the pii_data.json file
     # with open("./QAFolder/pii_data.json", "w", encoding="utf-8") as f:
@@ -111,29 +122,18 @@ def handle_prompt():
     #     }, f, indent=2)
 
 
-    # return jsonify({
-    #     "result": sanitized_prompt,
-    #     "detected": {
-    #         "emails": dict_email,
-    #         "ssns": dict_ssn,
-    #         "names": dict_name
-    #     },
-    #     "ai_original": ai_response_original,
-    #     "ai_sanitized": ai_response_sanitized
-    # })
-
-    # --- UPDATE JSON RESPONSE  ---
-    # Added dict_phone to the detected response
+    # --- UPDATE JSON RESPONSE ---
+    # Return the "filled" response instead of the raw one
     return jsonify({
         "result": sanitized_prompt,
         "detected": {
             "emails": dict_email,
             "ssns": dict_ssn,
             "names": dict_name,
-            "phones": dict_phone  # Added this
+            "phones": dict_phone
         },
         "ai_original": ai_response_original,
-        "ai_sanitized": ai_response_sanitized
+        "ai_sanitized": ai_response_sanitized_filled  
     })
 
 if __name__ == "__main__":
