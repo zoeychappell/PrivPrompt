@@ -150,6 +150,7 @@ class CLI:
                     response = call_genai(sanitized_user_input)
                 # Calls Deepseek
                 elif llm_name == "deepseek":
+                    print("\033[36mPlease note, Deepseek is very verbose and may take some time. ")
                     response = call_deepseek(sanitized_user_input)
                 # Call Workers AI
                 elif llm_name == 'workers ai':
