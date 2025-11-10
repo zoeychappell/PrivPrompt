@@ -61,7 +61,7 @@ def handle_prompt():
     # 1. Get the raw sanitized response
     raw_sanitized_response = call_llm(sanitized_prompt, llm_choice)
 
-    # 2. NEW STEP: Fill the response back in using your function
+    # 2. Fill the response back in using your function
     ai_response_sanitized_filled = fill_in_llm_response(
         raw_sanitized_response, 
         dict_email, 
