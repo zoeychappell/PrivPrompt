@@ -135,7 +135,7 @@ def sanitize_names(user_input, dict_email):
     for subj in sub_toks:
         if (
             # Check that the word is not a normal english word and not a proper known
-            (subj.pos_ != "PROPN" or subj.text.lower() not in english_words)
+            (subj.pos_ != "PROPN" and subj.text.lower() not in english_words)
             # Following three checks for email identification issue.
             and not subj.text in dict_email
             and not EMAIL_PATTERN.match(subj.text)
@@ -328,6 +328,7 @@ def sanitize_input(user_input):
     # #####################
     # Phones
     # #####################
+    
     sanitized_user_input, raw_user_input, dict_phone = sanitize_phonenumbers(sanitized_names)
 
     return sanitized_user_input, user_input, dict_email, dict_ssn, dict_name, dict_phone
@@ -355,10 +356,9 @@ Fail cases found:
 def main(): 
     # out = normalize("Omg, Jerome is a evil genius. He can hide his friend's name using dashes, like -Jerry! Dang, can't believe \Joshua and also /Jerma can hide in plain sight. Even -Thomas can be hidden like /Celia")
     #print (out)
-    dict_email = {}
-    user_input = "James David and David James are bringing snacks to the party. James promised to bring chips, and David said he'd handle drinks."
+    user_input = "this is a test."
 
-    user_input, dict_name = sanitize_names(user_input, dict_email)
+    sanitized_user_input, user_input, dict_email, dict_ssn, dict_name, dict_phone = sanitize_names(user_input, dict_email)
     print (user_input)
     #sanitize_input("Susan Davis (Email SDavis@gma.com, SSN 421-37-1396) recently got married.")
     #sanitize_input("James Heard (Email JAHE@gma.com, SSN 559-81-1301) recently got married. How can I congratulate him? I also heard that James has a friend coming over. I think their name was Thomas Conley. Also, James Smith was coming too. Bunch of James coming over, like James Avery. Hope it all goes well!")
