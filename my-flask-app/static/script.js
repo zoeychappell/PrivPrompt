@@ -16,9 +16,23 @@ document.addEventListener("DOMContentLoaded", () => {
         element.innerHTML = '<div class="loading">Processing...</div>';
     }
 
-    function clearContent(element) {
-        element.textContent = '';
+    function setPlaceholder(element, text) {
+        element.textContent = text;
+        element.style.color = '#666';
+        element.style.fontStyle = 'italic';
     }
+
+    function clearStyles(element) {
+        element.style.color = '';
+        element.style.fontStyle = '';
+    }
+
+    // Set initial placeholders
+    setPlaceholder(originalBox, "Enter a prompt to see results...");
+    setPlaceholder(detectedBox, "No sensitive information detected yet...");
+    setPlaceholder(sanitizedBox, "Sanitized version will appear here...");
+    setPlaceholder(aiResponseOriginal, "AI response using original prompt...");
+    setPlaceholder(aiResponseSanitized, "AI response using sanitized prompt...");
 
     button.addEventListener("click", async () => {
         const prompt = input.value.trim();
@@ -29,14 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Clear previous results
-        clearContent(originalBox);
-        clearContent(sanitizedBox);
-        clearContent(detectedBox);
-        clearContent(aiResponseOriginal);
-        clearContent(aiResponseSanitized);
-
-        // Set loading states
+        // Clear previous results and set loading
         setLoading(sanitizedBox);
         setLoading(detectedBox);
         setLoading(aiResponseOriginal);
@@ -44,6 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Show original prompt immediately
         originalBox.textContent = prompt;
+        clearStyles(originalBox);
 
         try {
             console.log("Sending request to:", `${apiBase}/api/prompt`);
@@ -67,7 +75,12 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log("Received data:", data);
 
             // Update all fields with the response data
-            sanitizedBox.textContent = data.result || "No sanitized prompt returned.";
+            if (data.result) {
+                sanitizedBox.textContent = data.result;
+                clearStyles(sanitizedBox);
+            } else {
+                setPlaceholder(sanitizedBox, "No sanitized prompt returned.");
+            }
             
             // Update detected info
             if (data.detected) {
@@ -87,14 +100,30 @@ document.addEventListener("DOMContentLoaded", () => {
                     sections.push("Phones: " + Object.keys(phones).join(", "));
                 }
                 
-                detectedBox.textContent = sections.join("\n") || "No sensitive information detected.";
+                if (sections.length > 0) {
+                    detectedBox.textContent = sections.join("\n");
+                    clearStyles(detectedBox);
+                } else {
+                    setPlaceholder(detectedBox, "No sensitive information detected.");
+                }
             } else {
-                detectedBox.textContent = "No sensitive information detected.";
+                setPlaceholder(detectedBox, "No sensitive information detected.");
             }
 
             // Update AI responses
-            aiResponseOriginal.textContent = data.ai_original || "No response received.";
-            aiResponseSanitized.textContent = data.ai_sanitized || "No response received.";
+            if (data.ai_original) {
+                aiResponseOriginal.textContent = data.ai_original;
+                clearStyles(aiResponseOriginal);
+            } else {
+                setPlaceholder(aiResponseOriginal, "No response received.");
+            }
+
+            if (data.ai_sanitized) {
+                aiResponseSanitized.textContent = data.ai_sanitized;
+                clearStyles(aiResponseSanitized);
+            } else {
+                setPlaceholder(aiResponseSanitized, "No response received.");
+            }
 
         } catch (err) {
             console.error("Error:", err);
@@ -102,6 +131,12 @@ document.addEventListener("DOMContentLoaded", () => {
             detectedBox.textContent = "Error processing request";
             aiResponseOriginal.textContent = "Error getting response";
             aiResponseSanitized.textContent = "Error getting response";
+            
+            // Style error messages
+            [sanitizedBox, detectedBox, aiResponseOriginal, aiResponseSanitized].forEach(box => {
+                box.style.color = '#dc3545';
+                box.style.fontStyle = 'normal';
+            });
         }
     });
 
