@@ -1,104 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PrivPrompt</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='style.css') }}"
-    />
-    <style>
-      .input-box {
-        display: flex;
-        gap: 0.5rem; /* space between textarea and button */
-      }
+<section
+  class="output-section"
+  style="
+    grid-column: 2 / 3;
+    grid-row: 1 / 3;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  "
+>
+  <div class="box" id="original-box">
+    <h2>
+      <i class="fas fa-file-alt"></i>
+      Original Prompt
+    </h2>
+    <pre id="originalPrompt"></pre>
+  </div>
 
-      #promptInput {
-        font-family: "Roboto", sans-serif;
-        font-size: 20px;
-        line-height: 1.2;
-        padding: 0.4em 0.6em;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
-        width: 100%;
-        overflow: hidden; /* hide scrollbar */
-        resize: none; /* prevent manual dragging */
-      }
-
-      #submitBtn {
-        padding: 0.4em 1em;
-        font-size: 1rem;
-        cursor: pointer;
-      }
-    </style>
-  </head>
-
-  <body>
-    <div class="banner">
-      <img
-        src="{{ url_for('static', filename='Closer-Logo.png') }}"
-        alt="PrivPrompt Logo"
-        class="banner-logo"
-      />
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px">
+    <div class="box" id="detected-box">
+      <h2>
+        <i class="fas fa-exclamation-triangle"></i>
+        Detected Sensitive Info
+      </h2>
+      <pre id="detected"></pre>
     </div>
 
-    <div class="container">
-      <div class="llm-selector-box">
-        <label for="llmSelector">Select AI Model:</label>
-        <select id="llmSelector">
-          <option value="llama">Llama (Groq)</option>
-          <option value="deepseek">Deepseek</option>
-          <option value="cohere">Cohere</option>
-          <option value="gemini">Gemini</option>
-          <option value="workers_ai">Workers AI</option>
-        </select>
-      </div>
+    <div class="box" id="sanitized-box">
+      <h2>
+        <i class="fas fa-shield-alt"></i>
+        Sanitized Prompt
+      </h2>
+      <pre id="sanitizedPrompt"></pre>
+    </div>
+  </div>
 
-      <div class="input-box">
-        <textarea
-          id="promptInput"
-          placeholder="Enter your prompt here..."
-          rows="1"
-        ></textarea>
-        <button id="submitBtn">Submit</button>
-      </div>
-
-      <script>
-        const ta = document.getElementById("promptInput");
-        ta.addEventListener("input", function () {
-          this.style.height = "auto"; // shrink if needed
-          this.style.height = this.scrollHeight + "px"; // grow to fit content
-        });
-      </script>
-
-      <div class="box">
-        <h2>Original Prompt</h2>
-        <pre id="originalPrompt"></pre>
-      </div>
-
-      <div class="box">
-        <h2>Detected Sensitive Info</h2>
-        <pre id="detected"></pre>
-      </div>
-
-      <div class="box">
-        <h2>Sanitized Prompt</h2>
-        <pre id="sanitizedPrompt"></pre>
-      </div>
-
-      <div class="box">
-        <h2>AI Response (Original Prompt)</h2>
-        <pre id="aiResponseOriginal"></pre>
-      </div>
-
-      <div class="box">
-        <h2>AI Response (Sanitized Prompt)</h2>
-        <pre id="aiResponseSanitized"></pre>
-      </div>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px">
+    <div class="box" id="ai-original-box">
+      <h2>
+        <i class="fas fa-comment"></i>
+        AI Response (Original)
+      </h2>
+      <pre id="aiResponseOriginal"></pre>
     </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-  </body>
-</html>
+    <div class="box" id="ai-sanitized-box">
+      <h2>
+        <i class="fas fa-comment-dots"></i>
+        AI Response (Sanitized)
+      </h2>
+      <pre id="aiResponseSanitized"></pre>
+    </div>
+  </div>
+</section>
