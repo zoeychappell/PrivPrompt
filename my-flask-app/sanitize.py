@@ -5,6 +5,7 @@ import spacy
 # For English word checking
 from nltk.corpus import words
 import unicodedata
+import sys
 
 # ---------------- REGEX DEFINITIONS ----------------
 
@@ -303,6 +304,45 @@ Outputs:
     - dict_name : a dictionary containing the found names and replacement names. 
     - dict_phone : a dictionary containing the found phone numbers and replacement phone numbers.
 '''
+
+def choose_sanitize_word(sanitized_user_input, user_input,
+                         dict_email, dict_ssn, dict_name, dict_phone,
+                         flask_choices=None):
+    # Helper function to process a single dictionary
+    def process_dict(label, data_dict):
+        # Local to the inner function 
+        nonlocal sanitized_user_input
+
+        for original, replacement in list(data_dict.items()):
+            # For Flask implementation
+            if flask_choices is not None: 
+                user_wants = flask_choices.get(original, True)
+            
+            # For CLI implementation
+            elif sys.stdin.isatty():
+                print(f"\nDetected {label}: \033[33m{original}\033[0m")
+                print(f"Suggested replacement → {replacement}")
+                # Get the user answer
+                choice = input("Sanitize this? (yes/no): ").strip().lower()
+                user_wants = (choice == "yes")
+            # Default case = Sanitize all
+            else: 
+                user_wants = True
+            
+            # Apply user_wants
+            if not user_wants: 
+                # remove the dummy value, restore original 
+                sanitized_user_input = sanitized_user_input.replace(replacement, original)
+                del data_dict[original]     # Remove from dictionary
+        return data_dict
+    # process each data category
+    dict_email = process_dict("email", dict_email)
+    dict_ssn = process_dict("SSN", dict_ssn)
+    dict_name = process_dict("name", dict_name)
+    dict_phone = process_dict("phone number", dict_phone)
+    return sanitized_user_input, dict_email, dict_ssn, dict_name, dict_phone
+
+
 def sanitize_input(user_input): 
     user_input = normalize(user_input)
 
@@ -330,7 +370,14 @@ def sanitize_input(user_input):
     # #####################
     
     sanitized_user_input, raw_user_input, dict_phone = sanitize_phonenumbers(sanitized_names)
-
+    sanitized_user_input, dict_email, dict_ssn, dict_name, dict_phone = choose_sanitize_word(
+        sanitized_user_input,
+        user_input,
+        dict_email,
+        dict_ssn,
+        dict_name,
+        dict_phone
+    )
     return sanitized_user_input, user_input, dict_email, dict_ssn, dict_name, dict_phone
 
 
