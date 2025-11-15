@@ -22,9 +22,5 @@ def call_mistral(prompt):
         # Handle response
     return res.choices[0].message.content
 
-def main():
-    response = call_mistral("Tell me who the best painter is")
-    print(response)
-if __name__ == '__main__':
-    main()
+
 
