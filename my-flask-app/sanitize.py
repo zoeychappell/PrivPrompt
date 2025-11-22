@@ -23,15 +23,23 @@ DATE_PATTERN_2 = re.compile(r"\d{1}\/\d{1}\/\d{2}") # Matches for #/#/## ex. 1/3
 
 PHONE_PATTERN_1 = re.compile (r"\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{4}") # matches 1231231234
 PHONE_PATTERN_2 = re.compile(r"\+([1-9]\d{0,2})[-.\s]?\(?\d{1,3}\)?([-.\s]?\d{1,3}){2,3}") # matches phone numbers with extensions
-    # TO DOs
-    # Matches for #/#/#### ex. 1/3/2024
-    # Matches for ##/#/#### ex. 01/3/2024
-    # Matches for 
-    # do boht month/day/year and day/month/year
+
+BIRTHDAY_PATTERN_1 = re.compile(r"(?:\d{1}|\d{2}|\d{4})[-\\/](?:\d{1}|\d{2}|\d{4})[-\\/](?:\d{1}|\d{2}|\d{4})") 
+# Above matches format: 
+# ##/##/#### or ##\##\#### or ##-##-#### or ####-##-## or ####/##/## or ####\##\##
+MONTH = r"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
+SEP = r"[ \-\\/]+"   
+BIRTHDAY_PATTERN_2 = re.compile(rf"{MONTH}{SEP}\d{1,2}{SEP}\d{2,4}") # Matches Jan 11 2003, January 11 2003, January 1 03
+BIRTHDAY_PATTERN_3 = re.compile(rf"\d{{1,2}}{SEP}{MONTH}{SEP}\d{{2,4}}") # Matches day month year format
+
 
 # ---------------- Global Parameters ----------------
+
 NLP = None
 ENGLISH_WORDS = None
+
+# ---------------- Helper Functions ----------------
+
 '''
 This function will lacy load spaCy models for use in name sanitization. 
 Parameters: 
@@ -94,6 +102,7 @@ def is_token_suffix(string_a, string_b):
     b_tokens = string_b.lower().split()
     return len(a_tokens) < len(b_tokens) and a_tokens == b_tokens[-len(a_tokens):]
 
+# ---------------- Primary Sanitization Functions ----------------
 
 '''
 This function is responsible for only sanitizing names. It is called
@@ -380,35 +389,3 @@ def sanitize_input(user_input):
     )
     return sanitized_user_input, user_input, dict_email, dict_ssn, dict_name, dict_phone
 
-
-'''
-Fail cases found: 
-    
-
-    have an issue with not separating names out
-    {"george O'malley george omalley": 'name1'}
-    {'zoey adam kirby riley caitlin maleah': 'name1'}
-
-
-    French names fail
-        Léon Dupont
-
-    Japense names normally succeed but wiht a few failures
-        Kobayashi Riku
-
-    Chinese names normally succeed but occasionally fail
-        Lui Fang
-'''
-'''
-def main(): 
-    # out = normalize("Omg, Jerome is a evil genius. He can hide his friend's name using dashes, like -Jerry! Dang, can't believe \Joshua and also /Jerma can hide in plain sight. Even -Thomas can be hidden like /Celia")
-    #print (out)
-    user_input = "this is a test."
-
-    sanitized_user_input, user_input, dict_email, dict_ssn, dict_name, dict_phone = sanitize_names(user_input, dict_email)
-    print (user_input)
-    #sanitize_input("Susan Davis (Email SDavis@gma.com, SSN 421-37-1396) recently got married.")
-    #sanitize_input("James Heard (Email JAHE@gma.com, SSN 559-81-1301) recently got married. How can I congratulate him? I also heard that James has a friend coming over. I think their name was Thomas Conley. Also, James Smith was coming too. Bunch of James coming over, like James Avery. Hope it all goes well!")
-if __name__ == '__main__':
-    main()
-'''
