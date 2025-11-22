@@ -10,3 +10,4 @@ google-genai
 python-dotenv
 mistralai
 cerebras
+dateparser
