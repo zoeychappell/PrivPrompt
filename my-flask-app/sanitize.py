@@ -6,6 +6,7 @@ import spacy
 from nltk.corpus import words
 import unicodedata
 import sys
+import dateparser
 
 # ---------------- REGEX DEFINITIONS ----------------
 
@@ -18,19 +19,50 @@ SSN_PATTERN_3 = re.compile(r"\d{3} \d{2}-\d{4}") # Matches format ### ##-####
 SSN_PATTERN_4 = re.compile(r"\d{3}-\d{2} \d{4}") # Matches format ###-## ####
 SSN_PATTERN_5  = re.compile(r"\d{9}") # Matches for #########
 
-DATE_PATTERN_1 = re.compile(r"\d{2}\/\d{2}\/\d{4}") # matches for ##/##/#### ex. 01/03/2024
-DATE_PATTERN_2 = re.compile(r"\d{1}\/\d{1}\/\d{2}") # Matches for #/#/## ex. 1/3/24
+DATE_PATTERN_1 = re.compile(
+    r"\d{2}\/\d{2}\/\d{4}"
+) # matches for ##/##/#### ex. 01/03/2024
+DATE_PATTERN_2 = re.compile(
+    r"\d{1}\/\d{1}\/\d{2}"
+) # Matches for #/#/## ex. 1/3/24
 
-PHONE_PATTERN_1 = re.compile (r"\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{4}") # matches 1231231234
-PHONE_PATTERN_2 = re.compile(r"\+([1-9]\d{0,2})[-.\s]?\(?\d{1,3}\)?([-.\s]?\d{1,3}){2,3}") # matches phone numbers with extensions
+PHONE_PATTERN_1 = re.compile (
+    r"\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{4}"
+) # matches 1231231234
+PHONE_PATTERN_2 = re.compile(
+    r"\+([1-9]\d{0,2})[-.\s]?\(?\d{1,3}\)?([-.\s]?\d{1,3}){2,3}") # matches phone numbers with extensions
 
-BIRTHDAY_PATTERN_1 = re.compile(r"(?:\d{1}|\d{2}|\d{4})[-\\/](?:\d{1}|\d{2}|\d{4})[-\\/](?:\d{1}|\d{2}|\d{4})") 
-# Above matches format: 
-# ##/##/#### or ##\##\#### or ##-##-#### or ####-##-## or ####/##/## or ####\##\##
-MONTH = r"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
-SEP = r"[ \-\\/]+"   
-BIRTHDAY_PATTERN_2 = re.compile(rf"{MONTH}{SEP}\d{1,2}{SEP}\d{2,4}") # Matches Jan 11 2003, January 11 2003, January 1 03
-BIRTHDAY_PATTERN_3 = re.compile(rf"\d{{1,2}}{SEP}{MONTH}{SEP}\d{{2,4}}") # Matches day month year format
+NUMERIC_DATE_PATTERN = re.compile(r"\b\d{1,2}[\/\-\\]\d{1,2}[\/\-\\]\d{2,4}\b")
+
+# Numeric formats: 2001/01/01, 01-02-2000, 1\1\99, etc.
+BIRTHDAY_PATTERN_1 = re.compile(
+    r"\b\d{4}[\/\-\\]\d{1,2}[\/\-\\]\d{1,2}\b"
+)
+
+# Month names
+MONTH = (
+    r"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|"
+    r"Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
+)
+
+# Allowed separators: space, dash, slash, backslash
+SEP = r"[ \-\\/]+"
+
+# Month Day Year (Jan 10 2000, December-25-1999, Feb/3/01)
+BIRTHDAY_PATTERN_2 = re.compile(
+    rf"\b{MONTH}{SEP}\d{{1,2}}{SEP}\d{{2,4}}\b"
+)
+
+# Day Month Year (10 Jan 2000, 3-February-01, 25\Dec\2024)
+BIRTHDAY_PATTERN_3 = re.compile(
+    rf"\b\d{{1,2}}{SEP}{MONTH}{SEP}\d{{2,4}}\b"
+)
+
+# Year Month Day (2001 Jan 10, 1999-Feb-5, 03 December 1)
+BIRTHDAY_PATTERN_4 = re.compile(
+    rf"\b\d{{2,4}}{SEP}{MONTH}{SEP}\d{{1,2}}\b"
+)
+
 
 
 # ---------------- Global Parameters ----------------
@@ -93,7 +125,7 @@ Returns:
 '''
 def normalize(string):
     string = unicodedata.normalize("NFKC", string)
-    return re.sub(r"[^\w\s',.@]", '', string, flags=re.UNICODE).strip()
+    return re.sub(r"[^\w\s',.@\/\\-]", '', string, flags=re.UNICODE).strip()
 
 
 
@@ -248,6 +280,62 @@ def sanitize_emails(user_input):
         email_counter += 1
     return sanitized_user_input, user_input, dict_email
 
+'''def sanitize_dates(user_input):
+    sanitized_user_input = user_input
+    dict_date = {}
+    # Checks the user input for any strings matching the regex pattern. 
+    date_matches = BIRTHDAY_PATTERN_1.findall(user_input) + BIRTHDAY_PATTERN_2.findall(user_input) + BIRTHDAY_PATTERN_3.findall(user_input) + BIRTHDAY_PATTERN_4.findall(user_input)
+    # Initializes an email counter
+    date_counter = 1
+    # Iterates through found emails
+    for e in date_matches:
+        # Maps the email to a fake email user#@email.com
+        dict_date[e] = f"January {date_counter} 2000"
+        # Replaces the found emails with user#@email.com
+        sanitized_user_input = sanitized_user_input.replace(e, dict_date[e])
+        # Iterate the email counter by one
+        date_counter += 1
+    return sanitized_user_input, user_input, dict_date
+'''
+def sanitize_dates(user_input):
+    sanitized_user_input = user_input
+    dict_dates = {}
+    date_counter = 1
+    # First pass - dateparser
+    tokens = user_input.split()
+    for token in range(len(tokens)):
+        for next_token in range(token+1, min(token+6, len(tokens) +1)):
+            candidate = " ".join(tokens[token:next_token])
+            parsed = dateparser.parse(candidate)
+            if parsed:
+                # Ensure the candidate contains day, month, and year
+                contains_year = any(tok.isdigit() and len(tok) == 4 for tok in candidate.split())
+                contains_month = any(tok.lower()[:3] in "janfebmaraprmayjunjulaugsepoctnovdec" or (tok.isdigit() and 1 <= int(tok) <= 12) for tok in candidate.split())
+                contains_day = any(tok.isdigit() and 1 <= int(tok) <= 31 for tok in candidate.split())
+                
+                if contains_year and contains_month and contains_day:
+                    replacement = f"January {date_counter} 2000"
+                    dict_dates[candidate] = replacement
+                    sanitized_user_input = sanitized_user_input.replace(candidate, replacement)
+                    date_counter += 1
+
+    # Second pass - regex based
+    # Checks the user input for any strings matching the regex pattern. 
+    date_matches = (NUMERIC_DATE_PATTERN.findall(user_input) +
+                BIRTHDAY_PATTERN_1.findall(user_input) +
+                BIRTHDAY_PATTERN_2.findall(user_input) +
+                BIRTHDAY_PATTERN_3.findall(user_input) +
+                BIRTHDAY_PATTERN_4.findall(user_input))    # Iterates through found emails
+    for e in date_matches:
+        if e not in dict_dates:
+            # Maps the email to a fake email user#@email.com
+            dict_dates[e] = f"January {date_counter} 2000"
+            # Replaces the found emails with user#@email.com
+            sanitized_user_input = sanitized_user_input.replace(e, dict_dates[e])
+            # Iterate the email counter by one
+            date_counter += 1   
+    return sanitized_user_input, user_input, dict_dates
+
 '''
 Fills in the LLM response with the original data. 
 Paramters: 
@@ -315,7 +403,7 @@ Outputs:
 '''
 
 def choose_sanitize_word(sanitized_user_input, user_input,
-                         dict_email, dict_ssn, dict_name, dict_phone,
+                         dict_email, dict_ssn, dict_name, dict_phone, dict_date,
                          flask_choices=None):
     # Helper function to process a single dictionary
     def process_dict(label, data_dict):
@@ -349,7 +437,8 @@ def choose_sanitize_word(sanitized_user_input, user_input,
     dict_ssn = process_dict("SSN", dict_ssn)
     dict_name = process_dict("name", dict_name)
     dict_phone = process_dict("phone number", dict_phone)
-    return sanitized_user_input, dict_email, dict_ssn, dict_name, dict_phone
+    dict_date = process_dict("date", dict_date)
+    return sanitized_user_input, dict_email, dict_ssn, dict_name, dict_phone, dict_date
 
 
 def sanitize_input(user_input): 
@@ -378,14 +467,21 @@ def sanitize_input(user_input):
     # Phones
     # #####################
     
-    sanitized_user_input, raw_user_input, dict_phone = sanitize_phonenumbers(sanitized_names)
-    sanitized_user_input, dict_email, dict_ssn, dict_name, dict_phone = choose_sanitize_word(
+    sanitized_phones, raw_user_input, dict_phone = sanitize_phonenumbers(sanitized_names)
+   
+    # #####################
+    # Dates
+    # #####################
+
+    sanitized_user_input, user_input, dict_date = sanitize_dates(sanitized_phones)
+    sanitized_user_input, dict_email, dict_ssn, dict_name, dict_phone, dict_date = choose_sanitize_word(
         sanitized_user_input,
         user_input,
         dict_email,
         dict_ssn,
         dict_name,
-        dict_phone
+        dict_phone, 
+        dict_date
     )
     return sanitized_user_input, user_input, dict_email, dict_ssn, dict_name, dict_phone
 
