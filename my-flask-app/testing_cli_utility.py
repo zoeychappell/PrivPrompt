@@ -1,9 +1,3 @@
-'''
-NOTE: THIS IS FOR TESTING PURPOSES ONLY
-THIS WILL SEND THE ORIGINAL PROMPT TO THE LLM (UNSANITIZED)
-DO NOT USE FOR SECURITY
-'''
-
 import sys
 #from user_input import clean_input
 from sanitize import sanitize_input, fill_in_llm_response
@@ -12,8 +6,10 @@ from llm_clients.cohere_llm_client import cohere
 from llm_clients.google_genai_llm_client import call_genai
 from llm_clients.deepseek_llm_client import call_deepseek
 from llm_clients.workers_ai_llm_client import call_workers_ai
+from llm_clients.mistral_llm_client import call_mistral
+from llm_clients.cerebras_llm_client import call_cerebras
 
-LIST_OF_LLMS = ["Llama", "Cohere", "Gemini", "Deepseek", "Workers AI"]
+LIST_OF_LLMS = ["Llama", "Cohere", "Gemini", "Deepseek", "Workers AI", "Mistral", "Cerebras"]
 
 class CLI: 
     def __init__(self):
@@ -29,7 +25,8 @@ class CLI:
         # By using sys.stdin.read(), the program can accept multiple lines of input
         print("\033[1;36mPlease type your message. \033[0m \n" \
         "\033[36mType \033[33m'Done'\033[0m \033[36m on a new line to finish.\n" \
-        "Type \033[33m'Exit Program'\033[0m \033[36mor \033[33mCTRL-C\033[0m \033[36m to exit the program.\033[0m")
+        "Type \033[33m'Exit Program'\033[0m \033[36mor \033[33mCTRL-C\033[0m \033[36m to exit the program.\033[0m\n" \
+        "\033[36mType\033[33m 'New LLM'\033[0m\033[36m to select a new LLM. \033[0m")
         lines = []
         # Iterates through each line the user enteres.
         for line in sys.stdin:
@@ -40,11 +37,24 @@ class CLI:
             # User enters 'done' when they want to send the prompt to the LLM
             if line.strip().lower() == "done":
                 break
-
+            if line.strip().lower() == "new llm": 
+                # Reset and let the user pick again
+                print("\n\033[33m[!] Switching to a new LLM...\033[0m")
+                self.chosen_llm = None
+                self.llm_choice()  # call it properly!
+                # Continue prompting after switching
+                print("\033[36mYou may now continue your message.\033[0m")
+                continue
             # Removes the new lines
             lines.append(line.rstrip("\n"))
         # Joins the user input into one big string separated by spaces
-        user_text = " ".join(lines)
+        user_text = " ".join(lines).strip()
+
+        # Prevent sending an empty message
+        if not user_text:
+            print("\033[1;31m[!] You entered an empty message. Please type something before 'done'.\033[0m\n")
+            return self.clean_input()  # re-prompt the user safely
+        
         # Verifies that all new lines are removed and trims whitespace
         cleaned_user_input = user_text.replace("\n", "").replace("\r", "")
         # Return the cleaned input and trims whitespace.
@@ -67,6 +77,37 @@ class CLI:
         print("  \033[33mDone\033[0m   -> Finish the prompt and send it to the LLM")
         print("\033[36m" + "="*40 + "\033[0m")
 
+    def llm_choice(self):
+        # Creates a list of available LLMs controlled by the global variable LIST_OF_LLMS
+            print("\033[1;34mAvailable LLMs: \033[0m")
+            llm_lookup = {llm.lower(): llm for llm in LIST_OF_LLMS}
+            # Prints a pretty version of the llm_lookup table to the user
+            for id, llm in enumerate(LIST_OF_LLMS, start=1):
+                print(f"   \033[36m{id}. {llm}")
+            
+            while not self.chosen_llm:
+                llm_choice = input("\n\033[1;34mWhich LLM would you like to use? (number or name): \033[0m").lower().strip()
+                
+                # Help option dialog
+                if llm_choice in ["help", "h", "?"]:
+                    self.show_help()
+                    continue
+                
+                # User enter the NAME of the LLM
+                if llm_choice in llm_lookup:
+                    self.chosen_llm = llm_choice
+                    break
+                # User enter the number shown in the CLI.
+                if llm_choice.isdigit():
+                    llm_index = int(llm_choice)
+                    if 1 <= llm_index <= len(LIST_OF_LLMS):
+                        self.chosen_llm = LIST_OF_LLMS[llm_index - 1]
+                        break
+                    else:
+                        print("\033[1;31mInvalid number. Please choose a valid option.\033[0m")
+                        continue
+                
+                print("\033[1;31m[!] Invalid choice. Please select another LLM.\033[0m")
     '''
     This function is responsible for continuous prompting, printing the program, and controlling the cli. 
     Parameters: 
@@ -79,24 +120,7 @@ class CLI:
         try: 
             print("\n\033[1;34m=== Welcome to PrivPrompt! ===\033[0m\n")
 
-            # Creates a list of available LLMs controlled by the global variable LIST_OF_LLMS
-            print("\033[1;34mAvailable LLMs: \033[0m")
-            llm_lookup = {llm.lower(): llm for llm in LIST_OF_LLMS}
-            # Prints a pretty version of the llm_lookup table to the user
-            for id, llm in enumerate(LIST_OF_LLMS, start=1):
-                print(f"   \033[36m{id}. {llm}")
-            
-            while not self.chosen_llm:
-                llm_choice = input("\n\033[1;34mWhich LLM would you like to use? (number or name): \033[0m").lower().strip()
-                
-                if llm_choice in ["help", "h", "?"]:
-                    self.show_help()
-                    continue
-                
-                if llm_choice in llm_lookup:
-                    self.chosen_llm = llm_choice
-                else: 
-                    print("\033[1;31m[!] Invalid choice. Please select another LLM.\033[0m")
+            self.llm_choice()
             
             # === Main loop ===
             while True:
@@ -109,36 +133,45 @@ class CLI:
                     self.show_help()
                     continue
 
-                sanitized_user_input, raw_user_input, dict_email, dict_ssn, dict_name = sanitize_input(command)
+                sanitized_user_input, raw_user_input, dict_email, dict_ssn, dict_name, dict_phone, dict_dates = sanitize_input(command)
                 response = "No response"
+                raw_response = "No raw response"   # ← FIX
+
                 # === Send to LLM ===
-                if self.chosen_llm == "llama":
+                if self.chosen_llm.lower() == "llama":
                     response = call_groq(sanitized_user_input)
-                    raw_response = call_groq(raw_user_input)   
-                elif self.chosen_llm == "cohere":
+                    raw_response = call_groq(raw_user_input)
+                elif self.chosen_llm.lower() == "cohere":
                     response = cohere(sanitized_user_input)
                     raw_response = cohere(raw_user_input)
-                elif self.chosen_llm == "gemini":
+                elif self.chosen_llm.lower() == "gemini":
                     response = call_genai(sanitized_user_input)
                     raw_response = call_genai(raw_user_input)
-                elif self.chosen_llm == "deepseek":
+                elif self.chosen_llm.lower() == "deepseek":
                     response = call_deepseek(sanitized_user_input)
                     raw_response = call_deepseek(raw_user_input)
-                elif self.chosen_llm == 'workers ai':
+                elif self.chosen_llm == "workers ai":
                     response = call_workers_ai(sanitized_user_input)
                     raw_response = call_workers_ai(raw_user_input)
-                else: 
-                    response = f"There was an error."
+                elif self.chosen_llm.lower() == "mistral":
+                    response = call_mistral(sanitized_user_input)
+                    raw_response = call_mistral(raw_user_input)
+                elif self.chosen_llm.lower() == "cerebras":
+                    response = call_cerebras(sanitized_user_input)
+                    raw_response = call_cerebras(raw_user_input)
+                else:
+                    response = "There was an error."
 
-                filled_in_response = fill_in_llm_response(response, dict_email, dict_ssn, dict_name)
+                filled_in_response = fill_in_llm_response(response, dict_email, dict_ssn, dict_name, dict_phone, dict_dates)
+                filled_in_response_raw = fill_in_llm_response(raw_response, dict_email, dict_ssn, dict_name, dict_phone, dict_dates)
                 print("\n" + "\033[35m" + "-"*40 + "\033[0m")
                 print(f"\033[35m[{self.chosen_llm.upper()}]\033[0m")
                 print(f"\033[34mYou entered:\033[0m {command}")
                 print(f"\033[34mSanitized prompt:\033[0m {sanitized_user_input}")
                 
-                print(f"\033[34mSanitized LLM response:\033[0m {response}")
+                print(f"\033[34mSanitized LLM response:\033[0m {filled_in_response}")
                 
-                print(f"\033[34mOriginal LLM response:\033[0m {raw_response}" )
+                print(f"\033[34mOriginal LLM response:\033[0m {filled_in_response_raw}" )
 
 
                 print("\033[35m" + "-"*40 + "\033[0m\n")
