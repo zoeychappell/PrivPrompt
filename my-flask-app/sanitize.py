@@ -6,33 +6,71 @@ import spacy
 from nltk.corpus import words
 import unicodedata
 import sys
+# used to parse dates from strings
 import dateparser
 
 # ---------------- REGEX DEFINITIONS ----------------
 
-EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}") # Matches email addresses 
-EMAIL_PATTERN_2 = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\,[a-zA-Z]{2,}") # Matches email addresses with comma typo
+    # #####################
+    # Emails
+    # #####################
 
-SSN_PATTERN_1 = re.compile(r"\d{3}-\d{2}-\d{4}") # Matches format ###-##-####
-SSN_PATTERN_2 = re.compile(r"\d{3} \d{2} \d{4}") # Matches format ### ## ####
-SSN_PATTERN_3 = re.compile(r"\d{3} \d{2}-\d{4}") # Matches format ### ##-####
-SSN_PATTERN_4 = re.compile(r"\d{3}-\d{2} \d{4}") # Matches format ###-## ####
-SSN_PATTERN_5  = re.compile(r"\d{9}") # Matches for #########
+# Matches email addresses 
+EMAIL_PATTERN = re.compile(
+    r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+) 
 
-DATE_PATTERN_1 = re.compile(
-    r"\d{2}\/\d{2}\/\d{4}"
-) # matches for ##/##/#### ex. 01/03/2024
-DATE_PATTERN_2 = re.compile(
-    r"\d{1}\/\d{1}\/\d{2}"
-) # Matches for #/#/## ex. 1/3/24
+# Matches email addresses with comma typo
+EMAIL_PATTERN_2 = re.compile(
+    r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\,[a-zA-Z]{2,}"
+) 
 
+    # #####################
+    # SSNs
+    # #####################
+
+ # Matches format ###-##-####
+SSN_PATTERN_1 = re.compile(
+    r"\d{3}-\d{2}-\d{4}"
+)
+
+# Matches format ### ## ####
+SSN_PATTERN_2 = re.compile(
+    r"\d{3} \d{2} \d{4}") 
+
+# Matches format ### ##-####
+SSN_PATTERN_3 = re.compile(r"\d{3} \d{2}-\d{4}"
+) 
+
+# Matches format ###-## ####
+SSN_PATTERN_4 = re.compile(
+    r"\d{3}-\d{2} \d{4}"
+) 
+
+# Matches for #########
+SSN_PATTERN_5  = re.compile(r"\d{9}"
+) 
+
+    # #####################
+    # Phones
+    # #####################
+
+# matches 1231231234
 PHONE_PATTERN_1 = re.compile (
     r"\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{4}"
-) # matches 1231231234
+) 
+# matches phone numbers with extensions
 PHONE_PATTERN_2 = re.compile(
-    r"\+([1-9]\d{0,2})[-.\s]?\(?\d{1,3}\)?([-.\s]?\d{1,3}){2,3}") # matches phone numbers with extensions
+    r"\+([1-9]\d{0,2})[-.\s]?\(?\d{1,3}\)?([-.\s]?\d{1,3}){2,3}") 
 
-NUMERIC_DATE_PATTERN = re.compile(r"\b\d{1,2}[\/\-\\]\d{1,2}[\/\-\\]\d{2,4}\b")
+    # #####################
+    # Dates
+    # #####################
+
+# Matches numerical date patterns
+NUMERIC_DATE_PATTERN = re.compile(
+    r"\b\d{1,2}[\/\-\\]\d{1,2}[\/\-\\]\d{2,4}\b"
+)
 
 # Numeric formats: 2001/01/01, 01-02-2000, 1\1\99, etc.
 BIRTHDAY_PATTERN_1 = re.compile(
@@ -64,20 +102,135 @@ BIRTHDAY_PATTERN_4 = re.compile(
 )
 
 
-
 # ---------------- Global Parameters ----------------
 
 NLP = None
 ENGLISH_WORDS = None
 
 # ---------------- Helper Functions ----------------
+'''
+    Function to allow the user to select what they would like to 
+    sanitize.
+
+    Parameters: 
+        - sanitized_user_input : string containing sanitized replacements
+        - user_input: original string
+        - dict_email: Dictionary containing found emails and replacements
+        - dict_ssn: Dictionary containing found SSNs and replacements
+        - dict_names: Dictionary containing found names and replacements
+        - dict_phone: Dictionary containing found phone numbers and replacements
+        - dict_dates: Dictionary containing found dates and replacements 
+    
+    Returns: 
+        - sanitized_user_input : string containing sanitized replacements
+        - user_input: original string
+        - dict_email: Dictionary containing found emails and replacements
+        - dict_ssn: Dictionary containing found SSNs and replacements
+        - dict_names: Dictionary containing found names and replacements
+        - dict_phone: Dictionary containing found phone numbers and replacements
+        - dict_dates: Dictionary containing found dates and replacements         
+'''
+def choose_sanitize_word(sanitized_user_input, user_input,
+                         dict_email, dict_ssn, dict_name, dict_phone, dict_date,
+                         flask_choices=None):
+    # Helper function to process a single dictionary
+    def process_dict(label, data_dict):
+        # Local to the inner function 
+        nonlocal sanitized_user_input
+
+        for original, replacement in list(data_dict.items()):
+            # For Flask implementation
+            if flask_choices is not None: 
+                user_wants = flask_choices.get(original, True)
+            
+            # For CLI implementation
+            elif sys.stdin.isatty():
+                print(f"\nDetected {label}: \033[33m{original}\033[0m")
+                print(f"Suggested replacement → {replacement}")
+                # Get the user answer
+                choice = input("Sanitize this? (yes/no): ").strip().lower()
+                user_wants = (choice == "yes")
+            # Default case = Sanitize all
+            else: 
+                user_wants = True
+            
+            # Apply user_wants
+            if not user_wants: 
+                # remove the dummy value, restore original 
+                sanitized_user_input = sanitized_user_input.replace(replacement, original)
+                del data_dict[original]     # Remove from dictionary
+        return data_dict
+    # process each data category
+    dict_email = process_dict("email", dict_email)
+    dict_ssn = process_dict("SSN", dict_ssn)
+    dict_name = process_dict("name", dict_name)
+    dict_phone = process_dict("phone number", dict_phone)
+    dict_date = process_dict("date", dict_date)
+    return sanitized_user_input, dict_email, dict_ssn, dict_name, dict_phone, dict_date
 
 '''
-This function will lacy load spaCy models for use in name sanitization. 
-Parameters: 
-    - None
-Returns: 
-    - NLP 
+    Fills in the LLM response with the original data. 
+    
+    Paramters: 
+        - response : string containing the LLM response
+        - dict_email : a dictionary containing the found emails and replacement email.
+        - dict_ssn : a dictionary containing the found SSNs and replacement SSN.
+        - dict_name : a dictionary containing the found names and replacement names. 
+        - dict_phone : a dictionary containing the found phone numbers and replacement phone numbers.
+    
+    Returns: 
+        - response : String of LLM response with replacement values replaced with original values. 
+'''
+def fill_in_llm_response(response, dict_email, dict_ssn, dict_name, dict_phone, dict_dates):
+    # Replaces fake emails with the given email
+    for email, fake_email in dict_email.items(): 
+        response = response.replace(fake_email, email)
+    # Replaces fake names with the given names
+    for name, fake_name in dict_name.items():
+        # checks for exact matches
+        response = response.replace(fake_name, name)
+        # Checks for capitlized variant. 
+        response = response.replace(str.capitalize(fake_name), str.capitalize(name))
+    # Replaces fake SSNs with the given SSNs
+    for ssn, fake_ssn in dict_ssn.items(): 
+        response = response.replace(fake_ssn, ssn)
+    # Replaces fake phone numbers with the given phone numbers
+    for phone, fake_phone in dict_phone.items():
+        response = response.replace(fake_phone, phone)
+    # Replaces fake dates with the given dates
+    for date, fake_date in dict_dates.items():
+        # Looks for an exact match
+        if fake_date in response: 
+            response = response.replace(fake_date, date)
+            continue
+        
+        # Try to match based off Regex for common variants
+        fake_month, fake_day, fake_year = fake_date.split()
+
+        # ensure day can be safely added into regex 
+        day_num = re.escape(fake_day)
+
+        # Make a pattern to match 
+        pattern = (
+        rf"(?i)\b{MONTH}{SEP}{day_num}(?:st|nd|rd|th)?"
+        r",?"  # allow optional comma like "January 1, 2000"
+        rf"{SEP.replace('+', '*')}{re.escape(fake_year)}\b"
+        )
+        date_regex = re.compile(pattern, re.VERBOSE | re.IGNORECASE)
+        response = date_regex.sub(date, response)
+
+
+
+    return response
+
+'''
+    This function will lacy load spaCy models for use in name sanitization. 
+    
+    Parameters: 
+        - None
+    
+    Returns: 
+        - NLP 
 '''
 def get_nlp():
     # Tells the function that NLP is a global variable, not function scope variable
@@ -92,11 +245,13 @@ def get_nlp():
             NLP = spacy.load("en_core_web_sm")
     return NLP
 '''
-This function will lacy load NLTK words for use in name sanitization. 
-Parameters: 
-    - None
-Returns: 
-    - ENGGLISH_WORDS 
+    This function will lacy load NLTK words for use in name sanitization. 
+    
+    Parameters: 
+        - None
+    
+    Returns: 
+        - ENGLISH_WORDS 
 '''
 def get_english_words():
     # Establishes the scope of ENGLISH WORDS
@@ -117,18 +272,29 @@ def get_english_words():
     return ENGLISH_WORDS
 
 '''
-Function to remove strange characters, whitespace, etc in string. 
-Parameters: 
-    - string : the string with potentially weird characters
-Returns: 
-    - string : the string with removed weird characters
+    Function to remove strange characters, whitespace, etc in string. 
+    
+    Parameters: 
+        - string : the string with potentially weird characters
+    
+    Returns: 
+        - string : the string with removed weird characters
 '''
 def normalize(string):
     string = unicodedata.normalize("NFKC", string)
     return re.sub(r"[^\w\s',.@\/\\-]", '', string, flags=re.UNICODE).strip()
 
 
-
+'''
+    Function to determine whether one string is a subset of another string
+    
+    Parameters: 
+        - string_a : the first string
+        - string_b : the second string
+    
+    Returns: 
+        Boolean
+'''
 def is_token_suffix(string_a, string_b):
     a_tokens = string_a.lower().split()
     b_tokens = string_b.lower().split()
@@ -279,23 +445,14 @@ def sanitize_emails(user_input):
         # Iterate the email counter by one
         email_counter += 1
     return sanitized_user_input, user_input, dict_email
+'''
+    Function to sanitize dates
 
-'''def sanitize_dates(user_input):
-    sanitized_user_input = user_input
-    dict_date = {}
-    # Checks the user input for any strings matching the regex pattern. 
-    date_matches = BIRTHDAY_PATTERN_1.findall(user_input) + BIRTHDAY_PATTERN_2.findall(user_input) + BIRTHDAY_PATTERN_3.findall(user_input) + BIRTHDAY_PATTERN_4.findall(user_input)
-    # Initializes an email counter
-    date_counter = 1
-    # Iterates through found emails
-    for e in date_matches:
-        # Maps the email to a fake email user#@email.com
-        dict_date[e] = f"January {date_counter} 2000"
-        # Replaces the found emails with user#@email.com
-        sanitized_user_input = sanitized_user_input.replace(e, dict_date[e])
-        # Iterate the email counter by one
-        date_counter += 1
-    return sanitized_user_input, user_input, dict_date
+    Parameters: 
+        - user_input : string of original user input
+    
+    Returns: 
+        - 
 '''
 def sanitize_dates(user_input):
     sanitized_user_input = user_input
@@ -337,34 +494,6 @@ def sanitize_dates(user_input):
     return sanitized_user_input, user_input, dict_dates
 
 '''
-Fills in the LLM response with the original data. 
-Paramters: 
-    - response : string containing the LLM response
-    - dict_email : a dictionary containing the found emails and replacement email.
-    - dict_ssn : a dictionary containing the found SSNs and replacement SSN.
-    - dict_name : a dictionary containing the found names and replacement names. 
-    - dict_phone : a dictionary containing the found phone numbers and replacement phone numbers.
-Outputs: 
-    - response : String of LLM response with replacement values replaced with original values. '''
-def fill_in_llm_response(response, dict_email, dict_ssn, dict_name, dict_phone):
-    # Replaces fake emails with the given email
-    for email, fake_email in dict_email.items(): 
-        response = response.replace(fake_email, email)
-    # Replaces fake names with the given names
-    for name, fake_name in dict_name.items():
-        # checks for exact matches
-        response = response.replace(fake_name, name)
-        # Checks for capitlized variant. 
-        response = response.replace(str.capitalize(fake_name), str.capitalize(name))
-    # Replaces fake SSNs with the given SSNs
-    for ssn, fake_ssn in dict_ssn.items(): 
-        response = response.replace(fake_ssn, ssn)
-    # Replaces fake phone numbers with the given phone numbers
-    for phone, fake_phone in dict_phone.items():
-        response = response.replace(fake_phone, phone)
-    return response
-
-'''
 Sanitizes only the phone numbers in the user prompt. 
 Parameters: 
     - user_input : string containing the original prompt. 
@@ -391,56 +520,20 @@ def sanitize_phonenumbers(user_input):
         phone_counter = phone_counter + 1
     return sanitized_user_input, user_input, dict_phone
 
+
 '''
-This function is the primary sanitization function. 
+Primary function called to sanitize user input. 
 Parameters: 
-    - user_input : A string entered by the user. The prompt. 
-Outputs: 
-    - dict_email : a dictionary containing the found emails and replacement email.
-    - dict_ssn : a dictionary containing the found SSNs and replacement SSN.
-    - dict_name : a dictionary containing the found names and replacement names. 
-    - dict_phone : a dictionary containing the found phone numbers and replacement phone numbers.
+    - string user iput
+Returns: 
+    - sanitized_user_input : string containing the sanitized user input
+    - user_input : string of original user input
+    - dict_email : Dictionary containing found emails and replacements
+    - dict_ssn : Dictionary containing found SSNs and replacements
+    - dict_name : Dictionary containing found names and replacements
+    - dict_phone : Dictionary containing found phones and replacements
+    - dict_date : Dictionary containing found dates and replacements
 '''
-
-def choose_sanitize_word(sanitized_user_input, user_input,
-                         dict_email, dict_ssn, dict_name, dict_phone, dict_date,
-                         flask_choices=None):
-    # Helper function to process a single dictionary
-    def process_dict(label, data_dict):
-        # Local to the inner function 
-        nonlocal sanitized_user_input
-
-        for original, replacement in list(data_dict.items()):
-            # For Flask implementation
-            if flask_choices is not None: 
-                user_wants = flask_choices.get(original, True)
-            
-            # For CLI implementation
-            elif sys.stdin.isatty():
-                print(f"\nDetected {label}: \033[33m{original}\033[0m")
-                print(f"Suggested replacement → {replacement}")
-                # Get the user answer
-                choice = input("Sanitize this? (yes/no): ").strip().lower()
-                user_wants = (choice == "yes")
-            # Default case = Sanitize all
-            else: 
-                user_wants = True
-            
-            # Apply user_wants
-            if not user_wants: 
-                # remove the dummy value, restore original 
-                sanitized_user_input = sanitized_user_input.replace(replacement, original)
-                del data_dict[original]     # Remove from dictionary
-        return data_dict
-    # process each data category
-    dict_email = process_dict("email", dict_email)
-    dict_ssn = process_dict("SSN", dict_ssn)
-    dict_name = process_dict("name", dict_name)
-    dict_phone = process_dict("phone number", dict_phone)
-    dict_date = process_dict("date", dict_date)
-    return sanitized_user_input, dict_email, dict_ssn, dict_name, dict_phone, dict_date
-
-
 def sanitize_input(user_input): 
     user_input = normalize(user_input)
 
@@ -483,5 +576,5 @@ def sanitize_input(user_input):
         dict_phone, 
         dict_date
     )
-    return sanitized_user_input, user_input, dict_email, dict_ssn, dict_name, dict_phone
+    return sanitized_user_input, user_input, dict_email, dict_ssn, dict_name, dict_phone, dict_date
 
