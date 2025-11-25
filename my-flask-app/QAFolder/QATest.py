@@ -8,6 +8,7 @@ from datetime import datetime
 
 # ================== SAVE RESULTS TO CSV ==================
 csv_reliable = "reliable_scores.csv"
+csv_pii_eval = "pii_sanitization_eval.csv"
 
 with open("pii_data.json", encoding="utf-8") as f:
     data = json.load(f)
@@ -159,14 +160,57 @@ print(f"Δ length (chars, sanitized - raw)   : {delta_len_chars:+d}")
 print(f"\nHighly similar overall?             : {'YES' if ensemble_semantic >= threshold else 'NO'}")
 print(f"Meaning preserved outside PII?      : {'YES' if ensemble_semantic_nonpii >= threshold else 'NO'}")
 
-# ================== WRITE ONE RELIABLE CSV ==================
+
+# ================== MANUAL PII EVAL INPUTS ==================
+print("\n--- PII Evaluation ---")
+print("Please enter counts based on your manual review.")
+print("If something doesn't apply, enter 0.\n")
+
+def get_int(prompt):
+    while True:
+        try:
+            return int(input(prompt).strip())
+        except ValueError:
+            print("Please enter an integer value.")
+
+total_pii = get_int("Total # of actual PII items in the prompt (ground truth): ")
+tp = get_int("PII items correctly identified & sanitized (true positives): ")
+fn = get_int("PII items missed / not sanitized (false negatives): ")
+fp = get_int("Non-PII items incorrectly sanitized (false positives): ")
+
+# Consistency check for the ground-truth PII
+if total_pii != tp + fn:
+    print(
+        f"\n[Warning] total_pii ({total_pii}) ≠ TP + FN ({tp + fn}). "
+        "Please double-check your counts."
+    )
+
+# ================== DERIVED METRICS ==================
+precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+recall    = tp / (tp + fn) if (tp + fn) > 0 else 0.0   # PII recall / coverage
+f1_pii    = (2 * precision * recall / (precision + recall)) if (precision + recall) > 0 else 0.0
+miss_rate = fn / total_pii if total_pii > 0 else 0.0   # fraction of PII missed
+
+print("\n--- PII Sanitization Metrics ---")
+print(f"Precision (over sanitized items) : {precision:.3f}")
+print(f"Recall    (over actual PII)      : {recall:.3f}")
+print(f"F1 score (PII)                   : {f1_pii:.3f}")
+print(f"Miss rate (PII not sanitized)    : {miss_rate:.3f}\n")
+
+
+
+# ================== WRITE RELIABLE CSV ==================
 row_lite = {
     "timestamp": datetime.now().isoformat(timespec="seconds"),
     "LLM": data["llm_used"],
     "sbert_cos": sbert_cos,
     "bert_f1": bert_f1,
     "ensemble_semantic": ensemble_semantic,
-    "delta_len_chars": delta_len_chars
+    "delta_len_chars": delta_len_chars,
+    "precision": precision,
+    "recall": recall,
+    "f1_pii": f1_pii,
+    "miss_rate": miss_rate
 }
 
 ensure_csv_exists(csv_reliable, list(row_lite.keys()))
