@@ -12,6 +12,7 @@ from llm_clients.workers_ai_llm_client import call_workers_ai
 
 # import json
 # import os
+# import time
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # disable caching
@@ -52,12 +53,21 @@ def handle_prompt():
         return jsonify({"error": "No prompt provided"}), 400
 
     # --- FIX SANITIZE_INPUT UNPACKING (BUG FIX) ---
+
+    # # Timer1 and Timer2 start immediately before sanitize_input
+    # t1_start = time.perf_counter()
+    # t2_start = t1_start
+
+    # -- USE HELPER FUNCTION FOR AI CALLS ---
+    ai_response_original = call_llm(prompt, llm_choice)
+
+    # # Timer2 stops immediately after original LLM call
+    # t2_end = time.perf_counter()
+
     # sanitize_input returns 6 values, added `_` for unused 'user_input'
     sanitized_prompt, _, dict_email, dict_ssn, dict_name, dict_phone, dict_dates = sanitize_input(prompt)
 
     # -- USE HELPER FUNCTION FOR AI CALLS ---
-    ai_response_original = call_llm(prompt, llm_choice)
-    
     # 1. Get the raw sanitized response
     raw_sanitized_response = call_llm(sanitized_prompt, llm_choice)
 
@@ -71,12 +81,24 @@ def handle_prompt():
         dict_dates
     )
 
+    # # Timer1 stops immediately after sanitized filled call
+    # t1_end = time.perf_counter()
 
     # # UNCOMMENT CODE FOR QA TESTING
     # # The code will automatically add text1, text2, and textresponse .txt files in ./QAFolder/ if missing
     # # Also adds the pii_data.json file. Uncomment import json and import os when using this part
     # # Must run app.py inside the ./my-flask-app/ folder
     # #   python app.py
+
+    # # Compute elapsed durations in seconds
+    # try:
+    #     timer1 = t1_end - t1_start
+    # except Exception:
+    #     timer1 = None
+    # try:
+    #     timer2 = t2_end - t2_start
+    # except Exception:
+    #     timer2 = None
 
     # # --- Ensure files exist ---
     # required_files = {
@@ -126,7 +148,9 @@ def handle_prompt():
     #         "phones": dict_phone,
     #         "dates":  dict_dates,
     #         "prompt": prompt,
-    #         "sanitized_prompt": sanitized_prompt
+    #         "sanitized_prompt": sanitized_prompt,
+    #         "Sanitize Timer": timer1,
+    #         "Non-sanitize Timer": timer2
     #     }, f, indent=2)
 
 
