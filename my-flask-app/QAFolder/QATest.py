@@ -41,80 +41,18 @@ PII = {
     "dates":  data.get("dates", []),   
 }
 
-# Your sanitizer placeholders (regex patterns; DO NOT escape)
-SAN_PLACEHOLDERS = {
-    "names":  [r"name\d+"],
-    "emails": [r"user\d+@email\.com"],
-    "ssns":   [r"xxx-xx-\d{4}"],
-    "phones": [r"xxx-xxx-\d{4}"],
-    "dates":  [r"date\d+", r"dob\d+", r"xx/xx/xxxx", r"xxxx-xx-xx"],
-}
-
 # ================== MODELS ==================
-bi_model = SentenceTransformer("all-MiniLM-L6-v2")  # SBERT bi-encoder
+# bi_model = SentenceTransformer("all-MiniLM-L6-v2")  # LIGHT SBERT bi-encoder
+# 1. SBERT: Switch to MPNet (Better accuracy than MiniLM)
+# bi_model = SentenceTransformer("all-mpnet-base-v2") # HEAVY SBERT bi-encoder
+bi_model = SentenceTransformer("BAAI/bge-large-en-v1.5") # HEAVY! SBERT bi-encoder
+
 
 # ================== HELPERS ==================
 def safe_regex_escape_list(items):
     """Escape detected PII literals for regex OR pattern."""
     return [re.escape(s) for s in items if s]
 
-def canonicalize_text(
-    t: str,
-    pii: dict,
-    san_placeholders: dict,
-    tags=("NAME", "EMAIL", "SSN", "PHONE", "DATE"),
-    use_heuristics=True,
-) -> str:
-    out = t
-
-    # Literal PII (escape!)
-    name_literals  = safe_regex_escape_list(pii.get("names", []))
-    email_literals = safe_regex_escape_list(pii.get("emails", []))
-    ssn_literals   = safe_regex_escape_list(pii.get("ssns", []))
-    phone_literals = safe_regex_escape_list(pii.get("phones", []))
-    date_literals  = safe_regex_escape_list(pii.get("dates", []))
-
-    # Placeholder regexes (DO NOT escape!)
-    name_ph  = san_placeholders.get("names", [])
-    email_ph = san_placeholders.get("emails", [])
-    ssn_ph   = san_placeholders.get("ssns", [])
-    phone_ph = san_placeholders.get("phones", [])
-    date_ph  = san_placeholders.get("dates", [])
-
-    # Combine into patterns
-    name_patterns  = name_literals + list(name_ph)
-    email_patterns = email_literals + list(email_ph)
-    ssn_patterns   = ssn_literals + list(ssn_ph)
-    phone_patterns = phone_literals + list(phone_ph)
-    date_patterns  = date_literals + list(date_ph)
-
-    if use_heuristics:
-        email_patterns += [r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"]
-        ssn_patterns   += [r"\b\d{3}-\d{2}-\d{4}\b"]
-        phone_patterns += [
-            r"\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b",
-            r"\(\d{3}\)\s*\d{3}[-.\s]?\d{4}",
-            r"\+?1?[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}"
-        ]
-        date_patterns += [
-            r"\b\d{4}-\d{2}-\d{2}\b",                     # YYYY-MM-DD
-            r"\b\d{1,2}/\d{1,2}/\d{2,4}\b",               # M/D/YY(YY)
-            r"\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2},\s+\d{4}\b"
-        ]
-
-    def sub_if(patterns, tag):
-        nonlocal out
-        if patterns:
-            pat = "|".join(patterns)
-            out = re.sub(rf"(?i)({pat})", f"<{tag}>", out)
-
-    sub_if(name_patterns,  tags[0])
-    sub_if(email_patterns, tags[1])
-    sub_if(ssn_patterns,   tags[2])
-    sub_if(phone_patterns, tags[3])
-    sub_if(date_patterns,  tags[4])
-
-    return out
 
 # ================== METRICS (ONLY RELIABLE ONES) ==================
 # SBERT cosine on raw vs sanitized
@@ -122,43 +60,35 @@ emb1 = bi_model.encode(text1, convert_to_tensor=True)
 emb2 = bi_model.encode(text2, convert_to_tensor=True)
 sbert_cos = util.cos_sim(emb1, emb2).item()
 
-# BERTScore F1 on raw vs sanitized
-P, R, F1 = bertscore([text1], [text2], lang="en", model_type="microsoft/deberta-base-mnli")
+# # BERTScore F1 on raw vs sanitized
+# P, R, F1 = bertscore([text1], [text2], lang="en", model_type="microsoft/deberta-base-mnli")
+# 2. BERTScore: Switch to DeBERTa Large (Better correlation than Base)
+# Note: This requires more RAM. If it crashes, stick to 'base'.
+# P, R, F1 = bertscore([text1], [text2], lang="en", model_type="microsoft/deberta-large-mnli") # Lighter model
+P, R, F1 = bertscore([text1], [text2], lang="en", model_type="microsoft/deberta-xlarge-mnli") # Heavier model
 bert_f1 = float(F1[0])
 
 ensemble_semantic = 0.5 * sbert_cos + 0.5 * bert_f1
 
-# Non-PII drift path
-text1_c = canonicalize_text(text1, PII, SAN_PLACEHOLDERS)
-text2_c = canonicalize_text(text2, PII, SAN_PLACEHOLDERS)
-
-emb1c = bi_model.encode(text1_c, convert_to_tensor=True)
-emb2c = bi_model.encode(text2_c, convert_to_tensor=True)
-sbert_cos_nonpii = util.cos_sim(emb1c, emb2c).item()
-
-Pc, Rc, F1c = bertscore([text1_c], [text2_c], lang="en", model_type="microsoft/deberta-base-mnli")
-bert_f1_nonpii = float(F1c[0])
-
-ensemble_semantic_nonpii = 0.5 * sbert_cos_nonpii + 0.5 * bert_f1_nonpii
+# (Non-PII drift canonicalization removed; final metrics use raw text comparisons only.)
 
 # Diagnostics
 delta_len_chars = len(text2) - len(text1)
 threshold = 0.70
 
 # ================== PRINT ==================
+print("===== Utility Metrics =====")
+print(f"Amount of time taken to sanitize prompt: {data['Sanitize Timer']:.2f} seconds")
+print(f"Amount of time taken for original prompt: {data['Non-sanitize Timer']:.2f} seconds")
+
+print("\n\n===== Semantic similarity Metrics =====")
 print(f"SBERT cosine similarity (raw)       : {sbert_cos:.3f}")
 print(f"BERTScore F1 (raw)                  : {bert_f1:.3f}")
 print(f"Ensemble (raw, SBERT+BERTScore)     : {ensemble_semantic:.3f}")
 
-print("\n--- Non-PII drift (canonicalized) ---")
-print(f"SBERT cosine (non-PII)              : {sbert_cos_nonpii:.3f}")
-print(f"BERTScore F1 (non-PII)              : {bert_f1_nonpii:.3f}")
-print(f"Ensemble (non-PII, semantic)        : {ensemble_semantic_nonpii:.3f}")
-
 print("\n--- Diagnostics ---")
 print(f"Δ length (chars, sanitized - raw)   : {delta_len_chars:+d}")
 print(f"\nHighly similar overall?             : {'YES' if ensemble_semantic >= threshold else 'NO'}")
-print(f"Meaning preserved outside PII?      : {'YES' if ensemble_semantic_nonpii >= threshold else 'NO'}")
 
 
 # ================== MANUAL PII EVAL INPUTS ==================
@@ -191,7 +121,7 @@ recall    = tp / (tp + fn) if (tp + fn) > 0 else 0.0   # PII recall / coverage
 f1_pii    = (2 * precision * recall / (precision + recall)) if (precision + recall) > 0 else 0.0
 miss_rate = fn / total_pii if total_pii > 0 else 0.0   # fraction of PII missed
 
-print("\n--- PII Sanitization Metrics ---")
+print("\n\n===== PII Sanitization Metrics =====")
 print(f"Precision (over sanitized items) : {precision:.3f}")
 print(f"Recall    (over actual PII)      : {recall:.3f}")
 print(f"F1 score (PII)                   : {f1_pii:.3f}")
@@ -210,7 +140,9 @@ row_lite = {
     "precision": precision,
     "recall": recall,
     "f1_pii": f1_pii,
-    "miss_rate": miss_rate
+    "miss_rate": miss_rate,
+    "Sanitize Timer": data["Sanitize Timer"],
+    "Non-sanitize Timer": data["Non-sanitize Timer"]
 }
 
 ensure_csv_exists(csv_reliable, list(row_lite.keys()))
