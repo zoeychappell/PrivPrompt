@@ -53,7 +53,7 @@ def handle_prompt():
 
     # --- FIX SANITIZE_INPUT UNPACKING (BUG FIX) ---
     # sanitize_input returns 6 values, added `_` for unused 'user_input'
-    sanitized_prompt, _, dict_email, dict_ssn, dict_name, dict_phone = sanitize_input(prompt)
+    sanitized_prompt, _, dict_email, dict_ssn, dict_name, dict_phone, dict_dates = sanitize_input(prompt)
 
     # -- USE HELPER FUNCTION FOR AI CALLS ---
     ai_response_original = call_llm(prompt, llm_choice)
@@ -67,7 +67,8 @@ def handle_prompt():
         dict_email, 
         dict_ssn, 
         dict_name, 
-        dict_phone
+        dict_phone,
+        dict_dates
     )
 
 
@@ -83,9 +84,12 @@ def handle_prompt():
     #     "text2.txt": "",
     #     "textresponse.txt": "",
     #     "pii_data.json": {
+    #         "llm_used": llm_choice,
     #         "emails": {},
     #         "ssns": {},
     #         "names": {},
+    #         "phones": {},
+    #         "dates": {},
     #         "prompt": "",
     #         "sanitized_prompt": ""
     #     }
@@ -98,39 +102,43 @@ def handle_prompt():
     #             with open(path, "w", encoding="utf-8") as f:
     #                 json.dump(default_content, f, indent=2)
     #         else:
-    ...
-
+    #             with open(path, "w", encoding="utf-8") as f:
+    #                 f.write("")
+    
     # # Appends both responses to textresponse.txt with 5 newlines between (empty file once in a while)
     # with open("./QAFolder/textresponse.txt", "a", encoding="utf-8") as f:
-    #     f.write(ai_response_original + "\n" * 5 + ai_response_sanitized_filled + "\n" * 5) # <-- MODIFIED
+    #     f.write(ai_response_original + "\n" * 5 + ai_response_sanitized_filled + "\n" * 5) 
 
     # # Writes each response to its own file (overwriting existing content)
     # with open("./QAFolder/text1.txt", "w", encoding="utf-8") as f1:
     #     f1.write(ai_response_original)
 
     # with open("./QAFolder/text2.txt", "w", encoding="utf-8") as f2:
-    #     f2.write(ai_response_sanitized_filled) # <-- MODIFIED
+    #     f2.write(ai_response_sanitized_filled)
 
     # # Writes the dictionaries of collected PII into the pii_data.json file
     # with open("./QAFolder/pii_data.json", "w", encoding="utf-8") as f:
     #     json.dump({
+    #         "llm_used": llm_choice,
     #         "emails": dict_email,
     #         "ssns":   dict_ssn,
     #         "names":  dict_name,
+    #         "phones": dict_phone,
+    #         "dates":  dict_dates,
     #         "prompt": prompt,
     #         "sanitized_prompt": sanitized_prompt
     #     }, f, indent=2)
 
 
     # --- UPDATE JSON RESPONSE ---
-    # Return the "filled" response instead of the raw one
     return jsonify({
         "result": sanitized_prompt,
         "detected": {
             "emails": dict_email,
             "ssns": dict_ssn,
             "names": dict_name,
-            "phones": dict_phone
+            "phones": dict_phone,
+            "dates": dict_dates
         },
         "ai_original": ai_response_original,
         "ai_sanitized": ai_response_sanitized_filled  

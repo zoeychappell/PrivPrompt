@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             // Update detected info
             if (data.detected) {
-                const { emails, ssns, names, phones } = data.detected;
+                const { emails, ssns, names, phones, dates } = data.detected;
                 const sections = [];
                 
                 if (Object.keys(names).length > 0) {
@@ -98,6 +98,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 if (Object.keys(phones).length > 0) {
                     sections.push("Phones: " + Object.keys(phones).join(", "));
+                }
+                if (Object.keys(dates).length > 0) {
+                    sections.push("Dates: " + Object.keys(dates).join(", "));
                 }
                 
                 if (sections.length > 0) {
