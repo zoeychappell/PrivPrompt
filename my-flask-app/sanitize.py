@@ -61,8 +61,17 @@ PHONE_PATTERN_1 = re.compile (
 ) 
 # matches phone numbers with extensions
 PHONE_PATTERN_2 = re.compile(
-    r"\+([1-9]\d{0,2})[-.\s]?\(?\d{1,3}\)?([-.\s]?\d{1,3}){2,3}") 
+    r"\+([1-9]\d{0,2})[-.\s]?\(?\d{1,3}\)?([-.\s]?\d{1,3}){2,3}"
+) 
+# Matches phone pattern ### ####
+PHONE_PATTERN_3 = re.compile(
+    r"\d{3} \d {4}"
+)
 
+# Matches phone numbers with pattern ### ### ####
+PHONE_PATTERN_4 = re.compile(
+    r"\d{3} \d{3} \d {4}"
+)
     # #####################
     # Dates
     # #####################
@@ -149,7 +158,7 @@ def choose_sanitize_word(sanitized_user_input, user_input,
                 print(f"Suggested replacement → {replacement}")
                 # Get the user answer
                 choice = input("Sanitize this? (yes/no): ").strip().lower()
-                user_wants = (choice == "yes")
+                user_wants = (choice == "yes" or choice == 'y')
             # Default case = Sanitize all
             else: 
                 user_wants = True
@@ -283,7 +292,20 @@ def get_english_words():
 def normalize(string):
     string = unicodedata.normalize("NFKC", string)
     return re.sub(r"[^\w\s',.@\/\\-]", '', string, flags=re.UNICODE).strip()
-
+'''
+    Function used to normalize phone numbers. 
+    
+    Parameters: 
+        - phone_string : string containing the phone number
+    
+    Returns: 
+        - s: string containing normalized phone numbers
+'''
+def normalize_phones(phone_string):
+    s = unicodedata.normalize("NFKC", phone_string)
+    s = re.sub(r"[^\d+]", " ", s)
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
 
 '''
     Function to determine whether one string is a subset of another string
@@ -509,7 +531,7 @@ def sanitize_phonenumbers(user_input):
     # Rename variable
     sanitized_user_input = user_input
     # Search for phone numbers that match the REGEX patterns
-    phone_matches = PHONE_PATTERN_1.findall(user_input) + PHONE_PATTERN_2.findall(user_input)
+    phone_matches = PHONE_PATTERN_1.findall(user_input) + PHONE_PATTERN_2.findall(user_input) + PHONE_PATTERN_3.findall(user_input) + PHONE_PATTERN_4.findall(user_input)
     phone_counter = 1
     # Iterate through matches
     for phone in phone_matches: 
@@ -535,6 +557,17 @@ Returns:
     - dict_date : Dictionary containing found dates and replacements
 '''
 def sanitize_input(user_input): 
+    # Normalize phones before global normalization
+    phone_matches = PHONE_PATTERN_1.findall(user_input) + \
+                    PHONE_PATTERN_2.findall(user_input) + \
+                    PHONE_PATTERN_3.findall(user_input) + \
+                    PHONE_PATTERN_4.findall(user_input)
+
+    for phone in phone_matches:
+        normalized = normalize_phones(phone)      
+        user_input = user_input.replace(phone, normalized)   
+    
+    # Global normalize
     user_input = normalize(user_input)
 
 
