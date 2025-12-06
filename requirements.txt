@@ -1,13 +1,18 @@
+# LLM API Libraries
 openai
 groq
 cohere
+google-genai
+mistralai
+cerebras
+
+# Environmental Setup Libraries
+python-dotenv
 flask
 flask-cors
 livereload
+
+# Sanitization Functionality Libraries
 spacy
 nltk
-google-genai
-python-dotenv
-mistralai
-cerebras
 dateparser
