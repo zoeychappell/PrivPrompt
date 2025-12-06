@@ -1,3 +1,14 @@
+'''
+IMPORTANT NOTE: 
+
+Running this function will send both the sanitized AND 
+UNSANITIZED prompt to the LLM. 
+
+PLEASE DON'T RUN IF YOU ARE SENDING SENSITIVE INFORMATION. 
+
+ONLY USE FOR TESTING PURPOSES WITH FAKE PII.
+
+'''
 import sys
 #from user_input import clean_input
 from sanitize import sanitize_input, fill_in_llm_response
