@@ -60,7 +60,10 @@ def create_env_file():
         "GROQ_API_KEY": "Groq",
         "COHERE_API_KEY": "Cohere",
         "GEMINI_API_KEY": "Google AI Studio (Gemini)",
-        "DEEPSEEK_API_KEY": "Deepseek (via OpenRouter)"
+        "DEEPSEEK_API_KEY": "Deepseek (via OpenRouter)",
+        "WORKERS_API_KEY": "Workers AI",
+        "MISTRAL_API_KEY": "Mistral AI", 
+        "CEREBRAS_API_KEY": "Cohere"
     }
 
     with open(env_path, "w") as f:
