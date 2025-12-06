@@ -11,8 +11,12 @@ python-dotenv
 flask
 flask-cors
 livereload
+sys
+os
+requests
 
 # Sanitization Functionality Libraries
+re
 spacy
 nltk
 dateparser
