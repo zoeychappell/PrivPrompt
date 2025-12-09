@@ -12,7 +12,6 @@ from llm_clients.workers_ai_llm_client import call_workers_ai
 
 # import json
 # import os
-# import time
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # disable caching
@@ -53,21 +52,12 @@ def handle_prompt():
         return jsonify({"error": "No prompt provided"}), 400
 
     # --- FIX SANITIZE_INPUT UNPACKING (BUG FIX) ---
-
-    # # Timer1 and Timer2 start immediately before sanitize_input
-    # t1_start = time.perf_counter()
-    # t2_start = t1_start
+    # sanitize_input returns 6 values, added `_` for unused 'user_input'
+    sanitized_prompt, _, dict_email, dict_ssn, dict_name, dict_phone = sanitize_input(prompt)
 
     # -- USE HELPER FUNCTION FOR AI CALLS ---
     ai_response_original = call_llm(prompt, llm_choice)
-
-    # # Timer2 stops immediately after original LLM call
-    # t2_end = time.perf_counter()
-
-    # sanitize_input returns 6 values, added `_` for unused 'user_input'
-    sanitized_prompt, _, dict_email, dict_ssn, dict_name, dict_phone, dict_dates = sanitize_input(prompt)
-
-    # -- USE HELPER FUNCTION FOR AI CALLS ---
+    
     # 1. Get the raw sanitized response
     raw_sanitized_response = call_llm(sanitized_prompt, llm_choice)
 
@@ -77,12 +67,9 @@ def handle_prompt():
         dict_email, 
         dict_ssn, 
         dict_name, 
-        dict_phone,
-        dict_dates
+        dict_phone
     )
 
-    # # Timer1 stops immediately after sanitized filled call
-    # t1_end = time.perf_counter()
 
     # # UNCOMMENT CODE FOR QA TESTING
     # # The code will automatically add text1, text2, and textresponse .txt files in ./QAFolder/ if missing
@@ -90,28 +77,15 @@ def handle_prompt():
     # # Must run app.py inside the ./my-flask-app/ folder
     # #   python app.py
 
-    # # Compute elapsed durations in seconds
-    # try:
-    #     timer1 = t1_end - t1_start
-    # except Exception:
-    #     timer1 = None
-    # try:
-    #     timer2 = t2_end - t2_start
-    # except Exception:
-    #     timer2 = None
-
     # # --- Ensure files exist ---
     # required_files = {
     #     "text1.txt": "",
     #     "text2.txt": "",
     #     "textresponse.txt": "",
     #     "pii_data.json": {
-    #         "llm_used": llm_choice,
     #         "emails": {},
     #         "ssns": {},
     #         "names": {},
-    #         "phones": {},
-    #         "dates": {},
     #         "prompt": "",
     #         "sanitized_prompt": ""
     #     }
@@ -124,45 +98,39 @@ def handle_prompt():
     #             with open(path, "w", encoding="utf-8") as f:
     #                 json.dump(default_content, f, indent=2)
     #         else:
-    #             with open(path, "w", encoding="utf-8") as f:
-    #                 f.write("")
-    
+    ...
+
     # # Appends both responses to textresponse.txt with 5 newlines between (empty file once in a while)
     # with open("./QAFolder/textresponse.txt", "a", encoding="utf-8") as f:
-    #     f.write(ai_response_original + "\n" * 5 + ai_response_sanitized_filled + "\n" * 5) 
+    #     f.write(ai_response_original + "\n" * 5 + ai_response_sanitized_filled + "\n" * 5) # <-- MODIFIED
 
     # # Writes each response to its own file (overwriting existing content)
     # with open("./QAFolder/text1.txt", "w", encoding="utf-8") as f1:
     #     f1.write(ai_response_original)
 
     # with open("./QAFolder/text2.txt", "w", encoding="utf-8") as f2:
-    #     f2.write(ai_response_sanitized_filled)
+    #     f2.write(ai_response_sanitized_filled) # <-- MODIFIED
 
     # # Writes the dictionaries of collected PII into the pii_data.json file
     # with open("./QAFolder/pii_data.json", "w", encoding="utf-8") as f:
     #     json.dump({
-    #         "llm_used": llm_choice,
     #         "emails": dict_email,
     #         "ssns":   dict_ssn,
     #         "names":  dict_name,
-    #         "phones": dict_phone,
-    #         "dates":  dict_dates,
     #         "prompt": prompt,
-    #         "sanitized_prompt": sanitized_prompt,
-    #         "Sanitize Timer": timer1,
-    #         "Non-sanitize Timer": timer2
+    #         "sanitized_prompt": sanitized_prompt
     #     }, f, indent=2)
 
 
     # --- UPDATE JSON RESPONSE ---
+    # Return the "filled" response instead of the raw one
     return jsonify({
         "result": sanitized_prompt,
         "detected": {
             "emails": dict_email,
             "ssns": dict_ssn,
             "names": dict_name,
-            "phones": dict_phone,
-            "dates": dict_dates
+            "phones": dict_phone
         },
         "ai_original": ai_response_original,
         "ai_sanitized": ai_response_sanitized_filled  
