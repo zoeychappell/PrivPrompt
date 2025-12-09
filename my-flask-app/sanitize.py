@@ -516,7 +516,7 @@ def sanitize_phonenumbers(user_input):
         # Replaces matches with a fake number
         dict_phone[phone] = f"(111)111-111{phone_counter}"
         # Rewrites sanitized input with the replacement string
-        sanitized_user_input = user_input.replace(phone, dict_phone[phone])
+        sanitized_user_input = sanitized_user_input.replace(phone, dict_phone[phone])
         phone_counter = phone_counter + 1
     return sanitized_user_input, user_input, dict_phone
 

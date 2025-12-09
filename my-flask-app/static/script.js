@@ -4,10 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const button = document.getElementById("submitBtn");
     const llmSelector = document.getElementById("llmSelector");
 
-    const originalBox = document.getElementById("originalPrompt");
     const sanitizedBox = document.getElementById("sanitizedPrompt");
     const detectedBox = document.getElementById("detected");
-    const aiResponseOriginal = document.getElementById("aiResponseOriginal");
     const aiResponseSanitized = document.getElementById("aiResponseSanitized");
 
     const apiBase = `${window.location.protocol}//${window.location.hostname}:5001`;
@@ -27,11 +25,9 @@ document.addEventListener("DOMContentLoaded", () => {
         element.style.fontStyle = '';
     }
 
-    // Set initial placeholders
-    setPlaceholder(originalBox, "Enter a prompt to see results...");
+    // Set initial placeholders for only the visible elements
     setPlaceholder(detectedBox, "No sensitive information detected yet...");
     setPlaceholder(sanitizedBox, "Sanitized version will appear here...");
-    setPlaceholder(aiResponseOriginal, "AI response using original prompt...");
     setPlaceholder(aiResponseSanitized, "AI response using sanitized prompt...");
 
     button.addEventListener("click", async () => {
@@ -43,15 +39,10 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Clear previous results and set loading
+        // Clear previous results and set loading for visible elements only
         setLoading(sanitizedBox);
         setLoading(detectedBox);
-        setLoading(aiResponseOriginal);
         setLoading(aiResponseSanitized);
-
-        // Show original prompt immediately
-        originalBox.textContent = prompt;
-        clearStyles(originalBox);
 
         try {
             console.log("Sending request to:", `${apiBase}/api/prompt`);
@@ -84,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             // Update detected info
             if (data.detected) {
-                const { emails, ssns, names, phones } = data.detected;
+                const { emails, ssns, names, phones, dates } = data.detected;
                 const sections = [];
                 
                 if (Object.keys(names).length > 0) {
@@ -99,6 +90,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (Object.keys(phones).length > 0) {
                     sections.push("Phones: " + Object.keys(phones).join(", "));
                 }
+                if (Object.keys(dates).length > 0) {
+                    sections.push("Dates: " + Object.keys(dates).join(", "));
+                }
                 
                 if (sections.length > 0) {
                     detectedBox.textContent = sections.join("\n");
@@ -110,14 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 setPlaceholder(detectedBox, "No sensitive information detected.");
             }
 
-            // Update AI responses
-            if (data.ai_original) {
-                aiResponseOriginal.textContent = data.ai_original;
-                clearStyles(aiResponseOriginal);
-            } else {
-                setPlaceholder(aiResponseOriginal, "No response received.");
-            }
-
+            // Update only the sanitized AI response (skip original)
             if (data.ai_sanitized) {
                 aiResponseSanitized.textContent = data.ai_sanitized;
                 clearStyles(aiResponseSanitized);
@@ -129,11 +116,10 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Error:", err);
             sanitizedBox.textContent = "Error: " + err.message;
             detectedBox.textContent = "Error processing request";
-            aiResponseOriginal.textContent = "Error getting response";
             aiResponseSanitized.textContent = "Error getting response";
             
             // Style error messages
-            [sanitizedBox, detectedBox, aiResponseOriginal, aiResponseSanitized].forEach(box => {
+            [sanitizedBox, detectedBox, aiResponseSanitized].forEach(box => {
                 box.style.color = '#dc3545';
                 box.style.fontStyle = 'normal';
             });

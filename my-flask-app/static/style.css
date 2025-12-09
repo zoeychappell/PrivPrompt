@@ -153,6 +153,16 @@ body {
   gap: 1.5rem;
 }
 
+.output-row:last-of-type {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.output-row:last-of-type .output-card {
+  grid-column: 1 / -1;
+}
+
 .full-width {
   grid-column: 1 / -1;
 }
@@ -217,6 +227,10 @@ body {
   }
   
   .output-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .output-row:last-of-type {
     grid-template-columns: 1fr;
   }
   
