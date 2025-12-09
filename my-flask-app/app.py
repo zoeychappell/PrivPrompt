@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from livereload import Server
-from sanitize import sanitize_input, fill_in_llm_response  # ADD fill_in_llm_response
+from sanitize import fill_in_llm_response, sanitize_input
 
 # --- IMPORT ALL LLM CLIENTS ---
 from llm_clients.groq_llm_client import call_groq
@@ -10,13 +10,18 @@ from llm_clients.google_genai_llm_client import call_genai
 from llm_clients.deepseek_llm_client import call_deepseek
 from llm_clients.workers_ai_llm_client import call_workers_ai
 
+# import json
+# import os
+# import time
+
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # disable caching
 CORS(app)
 
-# --- HELPER FUNCTION TO ROUTE LLM CALLS ---
+# --- 2. ADD HELPER FUNCTION TO ROUTE LLM CALLS ---
 def call_llm(prompt, llm_name):
     """Calls the selected LLM based on the llm_name."""
+    #fill_in_llm_response(response, dict_email, dict_ssn, dict_name, dict_phone)
     if llm_name == "cohere":
         return cohere(prompt)
     elif llm_name == "gemini":
@@ -47,16 +52,26 @@ def handle_prompt():
     if not prompt:
         return jsonify({"error": "No prompt provided"}), 400
 
-    # --- CALL SANITIZE_INPUT ---
-    # Get sanitized prompt and PII mappings
-    sanitized_prompt, _, dict_email, dict_ssn, dict_name, dict_phone, dict_dates = sanitize_input(prompt, interactive=False)
+    # --- FIX SANITIZE_INPUT UNPACKING (BUG FIX) ---
 
-    # --- SEND SANITIZED PROMPT TO LLM ---
-    # LLM sees: "name1 (born on January 1 2000) can be reached at user1@email.com"
+    # # Timer1 and Timer2 start immediately before sanitize_input
+    # t1_start = time.perf_counter()
+    # t2_start = t1_start
+
+    # -- USE HELPER FUNCTION FOR AI CALLS ---
+    ai_response_original = call_llm(prompt, llm_choice)
+
+    # # Timer2 stops immediately after original LLM call
+    # t2_end = time.perf_counter()
+
+    # sanitize_input returns 6 values, added `_` for unused 'user_input'
+    sanitized_prompt, _, dict_email, dict_ssn, dict_name, dict_phone, dict_dates = sanitize_input(prompt)
+
+    # -- USE HELPER FUNCTION FOR AI CALLS ---
+    # 1. Get the raw sanitized response
     raw_sanitized_response = call_llm(sanitized_prompt, llm_choice)
-    
-    # --- REPLACE PLACEHOLDERS WITH ORIGINAL PII FOR USER ---
-    # User sees: "John Smith (born on 03/15/1985) can be reached at john.smith@example.com"
+
+    # 2. Fill the response back in using your function
     ai_response_sanitized_filled = fill_in_llm_response(
         raw_sanitized_response, 
         dict_email, 
@@ -66,9 +81,82 @@ def handle_prompt():
         dict_dates
     )
 
-    # --- RETURN JSON RESPONSE ---
+    # # Timer1 stops immediately after sanitized filled call
+    # t1_end = time.perf_counter()
+
+    # # UNCOMMENT CODE FOR QA TESTING
+    # # The code will automatically add text1, text2, and textresponse .txt files in ./QAFolder/ if missing
+    # # Also adds the pii_data.json file. Uncomment import json and import os when using this part
+    # # Must run app.py inside the ./my-flask-app/ folder
+    # #   python app.py
+
+    # # Compute elapsed durations in seconds
+    # try:
+    #     timer1 = t1_end - t1_start
+    # except Exception:
+    #     timer1 = None
+    # try:
+    #     timer2 = t2_end - t2_start
+    # except Exception:
+    #     timer2 = None
+
+    # # --- Ensure files exist ---
+    # required_files = {
+    #     "text1.txt": "",
+    #     "text2.txt": "",
+    #     "textresponse.txt": "",
+    #     "pii_data.json": {
+    #         "llm_used": llm_choice,
+    #         "emails": {},
+    #         "ssns": {},
+    #         "names": {},
+    #         "phones": {},
+    #         "dates": {},
+    #         "prompt": "",
+    #         "sanitized_prompt": ""
+    #     }
+    # }
+
+    # for filename, default_content in required_files.items():
+    #     path = os.path.join("./QAFolder/", filename)
+    #     if not os.path.exists(path):
+    #         if filename.endswith(".json"):
+    #             with open(path, "w", encoding="utf-8") as f:
+    #                 json.dump(default_content, f, indent=2)
+    #         else:
+    #             with open(path, "w", encoding="utf-8") as f:
+    #                 f.write("")
+    
+    # # Appends both responses to textresponse.txt with 5 newlines between (empty file once in a while)
+    # with open("./QAFolder/textresponse.txt", "a", encoding="utf-8") as f:
+    #     f.write(ai_response_original + "\n" * 5 + ai_response_sanitized_filled + "\n" * 5) 
+
+    # # Writes each response to its own file (overwriting existing content)
+    # with open("./QAFolder/text1.txt", "w", encoding="utf-8") as f1:
+    #     f1.write(ai_response_original)
+
+    # with open("./QAFolder/text2.txt", "w", encoding="utf-8") as f2:
+    #     f2.write(ai_response_sanitized_filled)
+
+    # # Writes the dictionaries of collected PII into the pii_data.json file
+    # with open("./QAFolder/pii_data.json", "w", encoding="utf-8") as f:
+    #     json.dump({
+    #         "llm_used": llm_choice,
+    #         "emails": dict_email,
+    #         "ssns":   dict_ssn,
+    #         "names":  dict_name,
+    #         "phones": dict_phone,
+    #         "dates":  dict_dates,
+    #         "prompt": prompt,
+    #         "sanitized_prompt": sanitized_prompt,
+    #         "Sanitize Timer": timer1,
+    #         "Non-sanitize Timer": timer2
+    #     }, f, indent=2)
+
+
+    # --- UPDATE JSON RESPONSE ---
     return jsonify({
-        "result": sanitized_prompt,  # Show user what was sent to LLM
+        "result": sanitized_prompt,
         "detected": {
             "emails": dict_email,
             "ssns": dict_ssn,
@@ -76,9 +164,9 @@ def handle_prompt():
             "phones": dict_phone,
             "dates": dict_dates
         },
-        "ai_sanitized": ai_response_sanitized_filled  # User sees original PII restored
+        "ai_original": ai_response_original,
+        "ai_sanitized": ai_response_sanitized_filled  
     })
-
 
 if __name__ == "__main__":
     server = Server(app.wsgi_app)

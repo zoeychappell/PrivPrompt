@@ -11,7 +11,7 @@ ONLY USE FOR TESTING PURPOSES WITH FAKE PII.
 '''
 import sys
 #from user_input import clean_input
-from sanitize import sanitize_input
+from sanitize import sanitize_input, fill_in_llm_response
 from llm_clients.groq_llm_client import call_groq
 from llm_clients.cohere_llm_client import cohere
 from llm_clients.google_genai_llm_client import call_genai
@@ -173,18 +173,16 @@ class CLI:
                 else:
                     response = "There was an error."
 
-                #filled_in_response = fill_in_llm_response(response, dict_email, dict_ssn, dict_name, dict_phone, dict_dates)
-                #filled_in_response_raw = fill_in_llm_response(raw_response, dict_email, dict_ssn, dict_name, dict_phone, dict_dates)
-                print(f"\033[34mSanitized LLM response:\033[0m {response}")
-                print(f"\033[34mOriginal LLM response:\033[0m {raw_response}")
+                filled_in_response = fill_in_llm_response(response, dict_email, dict_ssn, dict_name, dict_phone, dict_dates)
+                filled_in_response_raw = fill_in_llm_response(raw_response, dict_email, dict_ssn, dict_name, dict_phone, dict_dates)
                 print("\n" + "\033[35m" + "-"*40 + "\033[0m")
                 print(f"\033[35m[{self.chosen_llm.upper()}]\033[0m")
                 print(f"\033[34mYou entered:\033[0m {command}")
                 print(f"\033[34mSanitized prompt:\033[0m {sanitized_user_input}")
                 
-                print(f"\033[34mSanitized LLM response:\033[0m {response}")
+                print(f"\033[34mSanitized LLM response:\033[0m {filled_in_response}")
                 
-                print(f"\033[34mOriginal LLM response:\033[0m {raw_response}" )
+                print(f"\033[34mOriginal LLM response:\033[0m {filled_in_response_raw}" )
 
 
                 print("\033[35m" + "-"*40 + "\033[0m\n")
