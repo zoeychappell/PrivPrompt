@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from livereload import Server
-from sanitize import sanitize_input
+from sanitize import sanitize_input, fill_in_llm_response  # ADD fill_in_llm_response
 
 # --- IMPORT ALL LLM CLIENTS ---
 from llm_clients.groq_llm_client import call_groq
@@ -47,16 +47,28 @@ def handle_prompt():
     if not prompt:
         return jsonify({"error": "No prompt provided"}), 400
 
-    # --- CALL SANITIZE_INPUT WITH interactive=False TO SKIP CLI PROMPTS ---
-    # sanitize_input returns 7 values now
+    # --- CALL SANITIZE_INPUT ---
+    # Get sanitized prompt and PII mappings
     sanitized_prompt, _, dict_email, dict_ssn, dict_name, dict_phone, dict_dates = sanitize_input(prompt, interactive=False)
 
-    # Get only the sanitized response (skip original for efficiency)
-    ai_response_sanitized = call_llm(sanitized_prompt, llm_choice)
+    # --- SEND SANITIZED PROMPT TO LLM ---
+    # LLM sees: "name1 (born on January 1 2000) can be reached at user1@email.com"
+    raw_sanitized_response = call_llm(sanitized_prompt, llm_choice)
+    
+    # --- REPLACE PLACEHOLDERS WITH ORIGINAL PII FOR USER ---
+    # User sees: "John Smith (born on 03/15/1985) can be reached at john.smith@example.com"
+    ai_response_sanitized_filled = fill_in_llm_response(
+        raw_sanitized_response, 
+        dict_email, 
+        dict_ssn, 
+        dict_name, 
+        dict_phone,
+        dict_dates
+    )
 
     # --- RETURN JSON RESPONSE ---
     return jsonify({
-        "result": sanitized_prompt,
+        "result": sanitized_prompt,  # Show user what was sent to LLM
         "detected": {
             "emails": dict_email,
             "ssns": dict_ssn,
@@ -64,7 +76,7 @@ def handle_prompt():
             "phones": dict_phone,
             "dates": dict_dates
         },
-        "ai_sanitized": ai_response_sanitized  # Only send sanitized response
+        "ai_sanitized": ai_response_sanitized_filled  # User sees original PII restored
     })
 
 
