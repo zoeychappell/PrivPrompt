@@ -94,21 +94,26 @@ MONTH = (
 
 # Allowed separators: space, dash, slash, backslash
 SEP = r"[ \-\\/]+"
+COMMA_OPT = r",?"
+
 
 # Month Day Year (Jan 10 2000, December-25-1999, Feb/3/01)
 BIRTHDAY_PATTERN_2 = re.compile(
-    rf"\b{MONTH}{SEP}\d{{1,2}}{SEP}\d{{2,4}}\b"
+    rf"\b{MONTH}{SEP}\d{{1,2}}{COMMA_OPT}{SEP}\d{{2,4}}\b"
 )
+
 
 # Day Month Year (10 Jan 2000, 3-February-01, 25\Dec\2024)
 BIRTHDAY_PATTERN_3 = re.compile(
-    rf"\b\d{{1,2}}{SEP}{MONTH}{SEP}\d{{2,4}}\b"
+    rf"\b\d{{1,2}}{SEP}{MONTH}{COMMA_OPT}{SEP}\d{{2,4}}\b"
 )
+
 
 # Year Month Day (2001 Jan 10, 1999-Feb-5, 03 December 1)
 BIRTHDAY_PATTERN_4 = re.compile(
-    rf"\b\d{{2,4}}{SEP}{MONTH}{SEP}\d{{1,2}}\b"
+    rf"\b\d{{2,4}}{SEP}{MONTH}{SEP}\d{{1,2}}{COMMA_OPT}\b"
 )
+
 
 
 # ---------------- Global Parameters ----------------
