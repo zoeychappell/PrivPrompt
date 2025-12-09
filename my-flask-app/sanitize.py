@@ -94,7 +94,8 @@ MONTH = (
 
 # Allowed separators: space, dash, slash, backslash
 SEP = r"[ \-\\/]+"
-COMMA_OPT = r",?"
+# Add option to for commas in dates
+COMMA_OPT = r",?" 
 
 
 # Month Day Year (Jan 10 2000, December-25-1999, Feb/3/01)
