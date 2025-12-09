@@ -534,7 +534,7 @@ Returns:
     - dict_phone : Dictionary containing found phones and replacements
     - dict_date : Dictionary containing found dates and replacements
 '''
-def sanitize_input(user_input): 
+def sanitize_input(user_input, interactive=True): 
     user_input = normalize(user_input)
 
 
@@ -567,14 +567,29 @@ def sanitize_input(user_input):
     # #####################
 
     sanitized_user_input, user_input, dict_date = sanitize_dates(sanitized_phones)
-    sanitized_user_input, dict_email, dict_ssn, dict_name, dict_phone, dict_date = choose_sanitize_word(
-        sanitized_user_input,
-        user_input,
-        dict_email,
-        dict_ssn,
-        dict_name,
-        dict_phone, 
-        dict_date
-    )
+    # sanitized_user_input, dict_email, dict_ssn, dict_name, dict_phone, dict_date = choose_sanitize_word(
+    #     sanitized_user_input,
+    #     user_input,
+    #     dict_email,
+    #     dict_ssn,
+    #     dict_name,
+    #     dict_phone, 
+    #     dict_date
+    # )
+    # return sanitized_user_input, user_input, dict_email, dict_ssn, dict_name, dict_phone, dict_date
+
+# Only run interactive prompts if requested (CLI mode)
+    if interactive:
+        sanitized_user_input, dict_email, dict_ssn, dict_name, dict_phone, dict_date = choose_sanitize_word(
+            sanitized_user_input,
+            user_input,
+            dict_email,
+            dict_ssn,
+            dict_name,
+            dict_phone, 
+            dict_date
+        )
+    
+    # Return all 7 values
     return sanitized_user_input, user_input, dict_email, dict_ssn, dict_name, dict_phone, dict_date
 

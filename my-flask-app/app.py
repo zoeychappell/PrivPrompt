@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from livereload import Server
-from sanitize import fill_in_llm_response, sanitize_input
+from sanitize import sanitize_input
 
 # --- IMPORT ALL LLM CLIENTS ---
 from llm_clients.groq_llm_client import call_groq
@@ -17,10 +17,9 @@ app = Flask(__name__, static_folder="static", static_url_path="/static")
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # disable caching
 CORS(app)
 
-# --- 2. ADD HELPER FUNCTION TO ROUTE LLM CALLS ---
+# --- HELPER FUNCTION TO ROUTE LLM CALLS ---
 def call_llm(prompt, llm_name):
     """Calls the selected LLM based on the llm_name."""
-    #fill_in_llm_response(response, dict_email, dict_ssn, dict_name, dict_phone)
     if llm_name == "cohere":
         return cohere(prompt)
     elif llm_name == "gemini":
@@ -51,27 +50,17 @@ def handle_prompt():
     if not prompt:
         return jsonify({"error": "No prompt provided"}), 400
 
-    # --- FIX SANITIZE_INPUT UNPACKING (BUG FIX) ---
-    # sanitize_input returns 6 values, added `_` for unused 'user_input'
-    sanitized_prompt, _, dict_email, dict_ssn, dict_name, dict_phone = sanitize_input(prompt)
+    # --- CALL SANITIZE_INPUT WITH interactive=False TO SKIP CLI PROMPTS ---
+    # sanitize_input returns 7 values now
+    sanitized_prompt, _, dict_email, dict_ssn, dict_name, dict_phone, dict_dates = sanitize_input(prompt, interactive=False)
 
     # -- USE HELPER FUNCTION FOR AI CALLS ---
     ai_response_original = call_llm(prompt, llm_choice)
     
-    # 1. Get the raw sanitized response
-    raw_sanitized_response = call_llm(sanitized_prompt, llm_choice)
+    # Get the sanitized response
+    ai_response_sanitized = call_llm(sanitized_prompt, llm_choice)
 
-    # 2. Fill the response back in using your function
-    ai_response_sanitized_filled = fill_in_llm_response(
-        raw_sanitized_response, 
-        dict_email, 
-        dict_ssn, 
-        dict_name, 
-        dict_phone
-    )
-
-
-    # # UNCOMMENT CODE FOR QA TESTING
+    # # UNCOMMENT CODE FOR QA TESTING IF NEEDED
     # # The code will automatically add text1, text2, and textresponse .txt files in ./QAFolder/ if missing
     # # Also adds the pii_data.json file. Uncomment import json and import os when using this part
     # # Must run app.py inside the ./my-flask-app/ folder
@@ -98,18 +87,19 @@ def handle_prompt():
     #             with open(path, "w", encoding="utf-8") as f:
     #                 json.dump(default_content, f, indent=2)
     #         else:
-    ...
+    #             with open(path, "w", encoding="utf-8") as f:
+    #                 f.write(default_content)
 
     # # Appends both responses to textresponse.txt with 5 newlines between (empty file once in a while)
     # with open("./QAFolder/textresponse.txt", "a", encoding="utf-8") as f:
-    #     f.write(ai_response_original + "\n" * 5 + ai_response_sanitized_filled + "\n" * 5) # <-- MODIFIED
+    #     f.write(ai_response_original + "\n" * 5 + ai_response_sanitized + "\n" * 5)
 
     # # Writes each response to its own file (overwriting existing content)
     # with open("./QAFolder/text1.txt", "w", encoding="utf-8") as f1:
     #     f1.write(ai_response_original)
 
     # with open("./QAFolder/text2.txt", "w", encoding="utf-8") as f2:
-    #     f2.write(ai_response_sanitized_filled) # <-- MODIFIED
+    #     f2.write(ai_response_sanitized)
 
     # # Writes the dictionaries of collected PII into the pii_data.json file
     # with open("./QAFolder/pii_data.json", "w", encoding="utf-8") as f:
@@ -117,24 +107,26 @@ def handle_prompt():
     #         "emails": dict_email,
     #         "ssns":   dict_ssn,
     #         "names":  dict_name,
+    #         "phones": dict_phone,
+    #         "dates":  dict_dates,
     #         "prompt": prompt,
     #         "sanitized_prompt": sanitized_prompt
     #     }, f, indent=2)
 
-
-    # --- UPDATE JSON RESPONSE ---
-    # Return the "filled" response instead of the raw one
+    # --- RETURN JSON RESPONSE ---
     return jsonify({
         "result": sanitized_prompt,
         "detected": {
             "emails": dict_email,
             "ssns": dict_ssn,
             "names": dict_name,
-            "phones": dict_phone
+            "phones": dict_phone,
+            "dates": dict_dates
         },
         "ai_original": ai_response_original,
-        "ai_sanitized": ai_response_sanitized_filled  
+        "ai_sanitized": ai_response_sanitized
     })
+
 
 if __name__ == "__main__":
     server = Server(app.wsgi_app)
