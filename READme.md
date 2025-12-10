@@ -10,7 +10,7 @@ We are guided by Faculty advisor Yidan Hu.
 
 Zoey Chappell, Adam Braccia, and Minn Myint
 
-# Setup the environment
+# Set Up the environment
 
 1. Run the setup_environment.py program
    This program will install all requirements, setup a virtual environment, create a .env file, and ask for the required API keys.
@@ -26,7 +26,7 @@ By using dotenv, API keys can be set as an environment variable and not included
    api_key = "your_api_key"
    NOTE: Each LLM has a specific naming scheme that the API key should follow.
 
-# To use flask and run front end:
+# To use Flask and run front end:
 
 1. Open Terminal
 2. Go to the location of the /my-flask-app
